@@ -12,8 +12,10 @@ Feature: 11번가
   Scenario: 로그인
     Given 11번가 실행
     When 로그인 클릭광
+    When 로그인전 테스트도 해야지?
     Then 로그인 화면 이동
     Then 임시 테스트용134566
+
 
 #
 #  Scenario: 명품개런티
