@@ -23,7 +23,7 @@ jobs:
       - name: Checkout main code
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: master
           fetch-depth: 0
           clean: true
 
