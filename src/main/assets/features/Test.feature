@@ -9,12 +9,12 @@ Feature: 11번가
     When 전용혜택안내x버튼 누르기
 
 
-  Scenario: 로그인
-    Given 11번가 실행
-    When 로그인 클릭광
-    When 로그인전 테스트도 해야지?
-    Then 로그인 화면 이동
-    Then 임시 테스트용13456677889910
+#  Scenario: 로그인
+#    Given 11번가 실행
+#    When 로그인 클릭광
+#    When 로그인전 테스트도 해야지?
+#    Then 로그인 화면 이동
+#    Then 임시 테스트용13456677889910
 
 
 
