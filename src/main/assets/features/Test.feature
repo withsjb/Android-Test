@@ -1,4 +1,4 @@
-@issue SCRUM-9
+@SCRUM-9
 Feature: 11번가
 
 
