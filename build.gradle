@@ -30,7 +30,22 @@ dependencies {
 
 test {
     useJUnitPlatform()
-}
+    systemProperty "cucumber.options", "--plugin json:target/cucumber.json"
+    testLogging {
+        events "passed", "failed", "skipped"
+    }
+//    reports {
+//        junitXml {
+//            // JUnit XML 리포트를 활성화
+//            destination = file("$buildDir/target")
+//        }
+//        html {
+//            // HTML 리포트 활성화 (필요시)
+//            destination = file("$buildDir/reports/tests")
+//        }
+
+    }
+//}
 
 
 tasks.withType(Test) {
