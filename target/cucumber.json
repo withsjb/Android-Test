@@ -1,1 +1,60 @@
-[{"line":1,"elements":[{"start_timestamp":"2024-11-27T01:07:34.232Z","line":4,"name":"광고 팝업 종료","description":"","id":"11번가;광고-팝업-종료","type":"scenario","keyword":"Scenario","steps":[{"result":{"duration":5619600,"status":"passed"},"line":5,"name":"11번가 실행","match":{"location":"steps.CommonGivenStep.start11st()"},"keyword":"Given "},{"result":{"duration":38695804900,"status":"passed"},"line":6,"name":"광고 팝업 클로즈","match":{"location":"steps.CommonWhenStep.closeganggo()"},"keyword":"When "},{"result":{"duration":905382900,"status":"passed"},"line":7,"name":"수신 정보 동의안함","match":{"location":"steps.CommonWhenStep.noagree()"},"keyword":"When "},{"result":{"duration":1629092800,"status":"passed"},"line":8,"name":"알림 서비스 확인","match":{"location":"steps.CommonWhenStep.bellservice()"},"keyword":"When "},{"result":{"duration":1880788100,"status":"passed"},"line":9,"name":"전용혜택안내x버튼 누르기","match":{"location":"steps.CommonWhenStep.service()"},"keyword":"When "}]}],"name":"11번가","description":"","id":"11번가","keyword":"Feature","uri":"file:src/main/assets/features/Test.feature","tags":[]}]
+[
+  {
+    "uri": "src/main/assets/features/Test.feature",
+    "id": "11번가;광고-팝업-종료",
+    "keyword": "Feature",
+    "name": "11번가",
+    "description": "",
+    "tags": [],
+    "elements": [
+      {
+        "id": "11번가;광고-팝업-종료",
+        "keyword": "Scenario",
+        "name": "광고 팝업 종료",
+        "description": "",
+        "steps": [
+          {
+            "keyword": "Given ",
+            "name": "11번가 실행",
+            "result": {
+              "status": "passed",
+              "duration": 5619600
+            }
+          },
+          {
+            "keyword": "When ",
+            "name": "광고 팝업 클로즈",
+            "result": {
+              "status": "passed",
+              "duration": 38695804900
+            }
+          },
+          {
+            "keyword": "When ",
+            "name": "수신 정보 동의안함",
+            "result": {
+              "status": "passed",
+              "duration": 905382900
+            }
+          },
+          {
+            "keyword": "When ",
+            "name": "알림 서비스 확인",
+            "result": {
+              "status": "passed",
+              "duration": 1629092800
+            }
+          },
+          {
+            "keyword": "When ",
+            "name": "전용혜택안내x버튼 누르기",
+            "result": {
+              "status": "passed",
+              "duration": 1880788100
+            }
+          }
+        ]
+      }
+    ]
+  }
+]
