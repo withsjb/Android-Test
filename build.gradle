@@ -1,6 +1,9 @@
+import groovy.json.JsonSlurper
+
+
 plugins {
     id 'java'
-
+   id 'groovy'
 
 }
 
@@ -20,6 +23,8 @@ dependencies {
     implementation group: 'io.cucumber', name: 'cucumber-java', version: '7.20.1'
     implementation group: 'io.cucumber', name: 'cucumber-junit', version: '7.20.1'
     implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.26.0'
+    implementation 'io.rest-assured:rest-assured:5.5.0'
+//    implementation 'org.codehaus.groovy:groovy:4.0.22'
 }
 
 
@@ -32,5 +37,55 @@ tasks.withType(Test) {
     useJUnitPlatform()
     systemProperty 'cucumber.plugin', 'json:build/reports/cucumber/cucumber.json'
     systemProperty 'cucumber.glue', 'steps'
+
 }
 
+//task uploadResultsToray {
+//    //doLast는 블록 내부의 Task 실행 시 가장 마지막에 실행되는 작업
+//    doLast {
+//        def clientId = "32C03E9DA0694BF2BA7FA2707364392C"       // Jira Xray에서 발급받은 Client ID
+//        def clientSecret = "72e8fa1d30bd08f91a473065410e06f4a1676eb2547247e1ea99be86c42b8de0" // Jira Xray에서 발급받은 Client Secret
+//        def jsonFile = file("target/cucumber.json")
+//        if(!jsonFile){
+//            throw new GradleException("Cucumber JSON 파일이 없습니다: ${jsonFile}")
+//        }
+//
+//        // 3. Xray 인증 요청
+//        println "Authenticating with Xray..."
+//        def authProcess = ["curl", "-H", "Content-Type: application/json", "-X", "POST",
+//                           "-d", JsonOutput.toJson([client_id: clientId, client_secret: clientSecret]),
+//                           "https://xray.cloud.xpand-it.com/api/v2/authenticate"].execute()
+//
+//        def authResponse = new JsonSlurper().parseText(authProcess.text)
+//        if (authProcess.exitValue() != 0) {
+//            throw new GradleException("Xray 인증에 실패했습니다: ${authResponse}")
+//        }
+//
+//        def authToken = authResponse // 응답이 인증 토큰 문자열임
+//
+//        println "Authentication successful! Token: ${authToken}"
+//
+//        // 4. Xray 결과 업로드 요청
+//        def testExecutionKey = "TEST_EXECUTION_KEY" // Xray에서 발급된 Test Execution Key
+//        println "Uploading results to Xray..."
+//        def uploadProcess = ["curl", "-H", "Content-Type: application/json",
+//                             "-H", "Authorization: Bearer ${authToken}", "-X", "POST",
+//                             "--data-binary", "@${jsonFile}",
+//                             "https://xray.cloud.xpand-it.com/api/v2/import/execution/cucumber?testExecutionKey=${testExecutionKey}"].execute()
+//
+//        def uploadResponse = uploadProcess.text
+//        if (uploadProcess.exitValue() != 0) {
+//            throw new GradleException("Xray 업로드에 실패했습니다: ${uploadResponse}")
+//        }
+//
+//        println "Xray 업로드 성공! 응답: ${uploadResponse}"
+//    }
+//}
+
+
+//task automatedTestAndUpload {
+//    dependsOn 'test', 'uploadResultsToXray' // 테스트 실행 후 결과 업로드
+//    doLast {
+//        println "테스트 실행 및 Xray 업로드 완료!"
+//    }
+//}
