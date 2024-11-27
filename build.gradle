@@ -35,7 +35,7 @@ test {
 
 tasks.withType(Test) {
     useJUnitPlatform()
-    systemProperty 'cucumber.plugin', 'json:build/reports/cucumber/cucumber.json'
+    systemProperty 'cucumber.plugin', 'json:target/cucumber.json'
     systemProperty 'cucumber.glue', 'steps'
 
 }
