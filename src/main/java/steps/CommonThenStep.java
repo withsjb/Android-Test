@@ -13,4 +13,9 @@ public class CommonThenStep {
 
 
     }
+
+    @Then("일부로 실패")
+    public void faildtest(){
+        throw new RuntimeException("실패 유도");
+    }
 }
