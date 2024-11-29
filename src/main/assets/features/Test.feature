@@ -1,4 +1,4 @@
-@SCRUM-12
+@SCRUM-20
 Feature: 11번가
 
 
