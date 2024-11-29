@@ -1,7 +1,6 @@
-@SCRUM-37
 Feature: 11번가
 
-
+  @SCRUM-49
   Scenario: 광고 팝업 종료
     Given 11번가 실행
     When 광고 팝업 클로즈
@@ -11,5 +10,3 @@ Feature: 11번가
 
 
 
-  Scenario: 일부로 실패
-    Then 일부로 실패
