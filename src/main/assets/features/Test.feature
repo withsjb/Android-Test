@@ -9,7 +9,3 @@ Feature: 11번가
     When 전용혜택안내x버튼 누르기
 
 
-  @SCRUM-53
-  Scenario: 일부로 실패
-    Then 일부로 실패
-
