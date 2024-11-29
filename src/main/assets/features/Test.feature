@@ -1,4 +1,4 @@
-@Epic-SCRUM-30
+@SCRUM-30
 Feature: 11번가
 
 
