@@ -17,8 +17,8 @@ repositories {
 
 dependencies {
     implementation 'junit:junit:4.13.1'
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+//    testImplementation platform('org.junit:junit-bom:5.10.0')
+//    testImplementation 'org.junit.jupiter:junit-jupiter'
     implementation group: 'io.appium', name: 'java-client', version: '9.3.0'
     implementation group: 'io.cucumber', name: 'cucumber-java', version: '7.20.1'
     implementation group: 'io.cucumber', name: 'cucumber-junit', version: '7.20.1'
@@ -31,11 +31,40 @@ dependencies {
 
 
 test {
-    useJUnitPlatform()
+    useJUnit() // JUnit 4 사용
     systemProperty "cucumber.options", "--plugin json:target/cucumber.json"
     testLogging {
         events "passed", "failed", "skipped"
     }
+}
+
+tasks.withType(Test) {
+    useJUnit() // JUnit 4 사용
+    // JUnit 4를 사용할 경우, JUnit 5 관련 설정 제거
+    // systemProperty 'cucumber.plugin', 'json:target/cucumber.json'
+    // systemProperty 'cucumber.glue', 'steps'
+}
+
+
+
+//test {
+//    useJUnitPlatform()
+//    systemProperty "cucumber.options", "--plugin json:target/cucumber.json"
+//    testLogging {
+//        events "passed", "failed", "skipped"
+//    }
+//
+//    tasks.withType(Test) {
+//        useJUnitPlatform()
+//        systemProperty 'cucumber.plugin', 'json:target/cucumber.json'
+//        systemProperty 'cucumber.glue', 'steps'
+//
+//    }
+
+
+
+
+
 //    reports {
 //        junitXml {
 //            // JUnit XML 리포트를 활성화
@@ -46,16 +75,11 @@ test {
 //            destination = file("$buildDir/reports/tests")
 //        }
 
-    }
+//    }
 //}
 
 
-tasks.withType(Test) {
-    useJUnitPlatform()
-    systemProperty 'cucumber.plugin', 'json:target/cucumber.json'
-    systemProperty 'cucumber.glue', 'steps'
 
-}
 
 //task uploadResultsToray {
 //    //doLast는 블록 내부의 Task 실행 시 가장 마지막에 실행되는 작업
