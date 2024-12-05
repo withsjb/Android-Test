@@ -78,7 +78,7 @@ public class XrayReportUploader {
             System.out.println("Xray API URL: " + Xray_API_URL);
             System.out.println("Xray API Token: " + XRAY_API_TOKEN);
             System.out.println("1번 실행");
-            String cucumberJsonFilePath = USER_DIR + "target/cucumber.json";  // Cucumber JSON 파일 경로
+            String cucumberJsonFilePath = "target/cucumber.json";  // Cucumber JSON 파일 경로
             System.out.println("2번 실행");
             uploadTestReport(cucumberJsonFilePath);
             System.out.println("3번 실행");
