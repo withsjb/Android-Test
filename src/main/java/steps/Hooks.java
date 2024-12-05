@@ -31,7 +31,7 @@ public class Hooks {
     @After
     public void finisapp(){
 
-
+        System.out.println("after 테스트 진입");
 
             Jirafeatureissue.featureupload(new String[]{});
 
