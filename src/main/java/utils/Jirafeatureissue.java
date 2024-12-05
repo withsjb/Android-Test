@@ -8,7 +8,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import utils.XrayReportUploader;
+
 
 public class Jirafeatureissue {
 
