@@ -4,7 +4,7 @@ import groovy.json.JsonSlurper
 plugins {
     id 'java'
    id 'groovy'
-    id 'io.cucumber' version '7.20.1'
+
 }
 
 group = 'org.example'
@@ -31,11 +31,7 @@ dependencies {
 //    implementation 'org.codehaus.groovy:groovy:4.0.22'
 }
 
-cucumber {
-    // Cucumber 설정 (테스트 실행 시 사용할 설정)
-    features = ['src/main/resources/Test.features']  // .feature 파일 경로
-    glue = ['steps']  // Step definition 경로
-}
+
 
 
 test {
