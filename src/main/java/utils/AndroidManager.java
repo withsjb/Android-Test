@@ -40,6 +40,7 @@ public class AndroidManager {
                         // The default URL in Appium 1 is http://127.0.0.1:4723/wd/hub
                         new URL("http://127.0.0.1:4723"), options
                 );
+                 System.out.println("드라이버 연결");
             }catch(MalformedURLException e){
                 throw new RuntimeException(e);
             }
