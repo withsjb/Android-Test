@@ -19,7 +19,7 @@ public class Hooks {
 
     @Before
     public void startapp() throws MalformedURLException {
-//        System.out.println("before 테스트 정상 실행");
+           System.out.println("before 테스트 정상 실행");
         AndroidManager.getDriver();
 
     }
