@@ -30,9 +30,9 @@ public class XrayReportUploader {
        public static void uploadTestReport(String cucumberJsonFilePath) throws Exception {
         // Cucumber JSON 파일을 읽기
         File cucumberJsonFile = new File(cucumberJsonFilePath);
-           System.out.println("패스 함수: "+ cucumberJsonFilePath);
+           System.out.println("cucumber 위치: "+ cucumberJsonFilePath);
         byte[] cucumberJsonBytes = Files.readAllBytes(cucumberJsonFile.toPath());
-        System.out.println("uploadtestreport 함수: "+ cucumberJsonBytes);
+        System.out.println("uploadtestreport 함수 들어있음?: "+ cucumberJsonBytes);
 
 
         System.out.println("*번 실행");
