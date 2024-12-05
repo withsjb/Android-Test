@@ -1,6 +1,6 @@
 Feature: 11번가
 
-  @SCRUM-175
+  @SCRUM-177
   Scenario: 광고 팝업 종료
     Given 11번가 실행
     When 광고 팝업 클로즈
