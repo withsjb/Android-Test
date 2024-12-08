@@ -7,6 +7,8 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -83,6 +85,18 @@ public class AndroidManager {
     public static List<WebElement> getAllElementByXpath(String xPath) throws MalformedURLException{
         return  getWait().until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(xPath)));
     }
+
+
+    public static HttpURLConnection connect (String urlString, String method, String username, String apiToken) throws IOException {
+        URL url = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod(method);
+        connection.setRequestProperty("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString((username + ":" + apiToken).getBytes()));
+        connection.setRequestProperty("Content-Type", "application/json");
+        return connection;
+
+    }
+
 
 //    public static WebElement error_close(String id) throws MalformedURLException{
 //
