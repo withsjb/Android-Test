@@ -115,9 +115,9 @@ public class XrayReportUploader {
 
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
-                System.out.println("Issue summary updated successfully.");
+                System.out.println("이슈 이름 바꾸기 성공.");
             } else {
-                System.out.println("Failed to update issue summary. Response code: " + responseCode);
+                System.out.println("이슈 이름 바꾸기 실패. Response code: " + responseCode);
                 try (InputStream errorStream = connection.getErrorStream()) {
                     String errorResponse = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
                     System.out.println("Error Response: " + errorResponse);
@@ -378,11 +378,6 @@ public class XrayReportUploader {
 
             XrayReport(args);
 
-            // Cucumber JSON 파일 경로와 Jira 이슈 키를 전달
-//            String resourece = "src/main/resources/application.properties";
-//            loadProperties(resourece);
-//            String cucumberJsonFilePath = "target/cucumber.json";  // Cucumber JSON 파일 경로
-//            uploadTestReport(cucumberJsonFilePath);
         } catch (Exception e) {
             e.printStackTrace();
         }
