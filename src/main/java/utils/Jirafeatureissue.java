@@ -31,20 +31,31 @@ public class Jirafeatureissue {
         }
     }
 
-    public static File zipFeatureFile(String featureFilePath) throws IOException {
-        File featureFile = new File(featureFilePath);
-        File zipFile = new File(featureFile.getParent(), "xray_cucumber_features.zip");
+    public static File zipFeatureFile(String featureDirectoryPath) throws IOException {
+        File featureDirectory = new File(featureDirectoryPath);
+        if (!featureDirectory.isDirectory()) {
+            throw new IllegalArgumentException("feature.path must be a directory containing .feature files.");
+        }
 
-        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile));
-             FileInputStream fis = new FileInputStream(featureFile)) {
+        File zipFile = new File(featureDirectory, "xray_cucumber_features.zip");
+        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
+            File[] featureFiles = featureDirectory.listFiles((dir, name) -> name.endsWith(".feature"));
 
-            zos.putNextEntry(new ZipEntry(featureFile.getName()));
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = fis.read(buffer)) > 0) {
-                zos.write(buffer, 0, length);
+            if (featureFiles == null || featureFiles.length == 0) {
+                throw new FileNotFoundException("No .feature files found in the specified directory.");
             }
-            zos.closeEntry();
+
+            for (File featureFile : featureFiles) {
+                try (FileInputStream fis = new FileInputStream(featureFile)) {
+                    zos.putNextEntry(new ZipEntry(featureFile.getName()));
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = fis.read(buffer)) > 0) {
+                        zos.write(buffer, 0, length);
+                    }
+                    zos.closeEntry();
+                }
+            }
         }
 
         return zipFile;
@@ -102,6 +113,7 @@ public class Jirafeatureissue {
 
             // 응답에서 Jira 이슈 키 확인
             if (responseCode == HttpURLConnection.HTTP_OK) {
+
                 System.out.println("Feature files successfully imported to Jira Issue " );
             } else {
                 System.out.println("Failed to import feature files.");
@@ -111,6 +123,8 @@ public class Jirafeatureissue {
             if (in != null) in.close();
         }
     }
+
+
 
 
     public static void featureupload(String[] args) {

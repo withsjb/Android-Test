@@ -15,6 +15,9 @@ import java.time.ZonedDateTime;
 import java.util.Properties;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class XrayReportUploader {
 
@@ -30,6 +33,11 @@ public class XrayReportUploader {
     static String JIRA_TOKEN;
 
     static String oneonetestPlen;
+
+    static String logpath;
+    static String errorcaturepath;
+
+    static String logandimgzip;
 
     private static ZonedDateTime koreantime = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
 
@@ -47,6 +55,9 @@ public class XrayReportUploader {
             JIRA_TOKEN = properties.getProperty("jira.api.token");
             USERNAME = properties.getProperty("username");
             oneonetestPlen = properties.getProperty("11st.plen");
+            logpath = properties.getProperty("log.path");
+            errorcaturepath = properties.getProperty("errorcature.path");
+            logandimgzip = properties.getProperty("log.img.zip");
         }
     }
 
@@ -131,7 +142,7 @@ public class XrayReportUploader {
 
         String jsonPayload = "{"
                 + "\"type\": {"
-                + "\"name\": \"Relates\""
+                + "\"name\": \"Test\""
                 + "},"
                 + "\"inwardIssue\": {"
                 + "\"key\": \"" + executKey + "\""
@@ -237,6 +248,8 @@ public class XrayReportUploader {
         //link 하기
     }
 
+
+
     public static void XrayReport(String[] args) {
         try {
             // Cucumber JSON 파일 경로와 Jira 이슈 키를 전달
@@ -254,12 +267,109 @@ public class XrayReportUploader {
            String new_summary = "11st test " + "[" + formatdate + "]";
            System.out.println(new_summary);
            update_summary(issuekey,new_summary,JIRA_TOKEN,USERNAME);
+            captureandlog(issuekey,USERNAME,JIRA_TOKEN,logpath,errorcaturepath);
            LinkTeatPlen(issuekey, oneonetestPlen, JIRA_TOKEN, USERNAME );
            System.out.println(cucumberJsonFilePath);
             System.out.println("Xray report 테스트 정상 실행");
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    //log 및 캡쳐 사진 첨부
+
+    public static void zipFiles(File[] files, String zipFileName) throws IOException {
+        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFileName))) {
+            byte[] buffer = new byte[1024];
+            for (File file : files) {
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    zos.putNextEntry(new ZipEntry(file.getName()));
+                    int length;
+                    while ((length = fis.read(buffer)) >= 0) {
+                        zos.write(buffer, 0, length);
+                    }
+                    zos.closeEntry();
+                }
+            }
+        }
+    }
+
+    // Jira에 파일 첨부 메서드
+    public static void captureandlog(String issueKey, String username, String jiraApiToken, String logDirPath, String pngDirPath) throws Exception {
+        String url = JIRA_URL + "/rest/api/3/issue/" + issueKey + "/attachments";
+        System.out.println("첨부파일 url" + url);
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString((username + ":" + jiraApiToken).getBytes()));
+        connection.setRequestProperty("X-Atlassian-Token", "no-check");  //xsrf 우화
+        String boundary = UUID.randomUUID().toString();
+        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+        connection.setDoOutput(true);
+
+        // .log와 .png 파일 리스트 가져오기
+        File[] logFiles = new File(logDirPath).listFiles((dir, name) -> name.endsWith(".log"));
+        File[] pngFiles = new File(pngDirPath).listFiles((dir, name) -> name.endsWith(".png"));
+
+        // 파일 리스트가 존재하면 압축 생성
+        if (logFiles != null || pngFiles != null) {
+            String zipFilePath = "logs_and_images.zip"; // 압축 파일 경로
+
+            // .log와 .png 파일을 압축
+            File tempZipFile = new File(zipFilePath);
+            try {
+                zipFiles(concatenateFiles(logFiles, pngFiles), zipFilePath); // 두 종류 파일을 하나로 합쳐서 압축
+            } catch (IOException e) {
+                System.out.println("파일 압축 중 오류 발생: " + e.getMessage());
+                return;
+            }
+
+            // 파일을 첨부하는 부분
+            try (OutputStream os = connection.getOutputStream()) {
+                os.write(("--" + boundary + "\r\n").getBytes());
+                os.write(("Content-Disposition: form-data; name=\"file\"; filename=\"" + tempZipFile.getName() + "\"\r\n").getBytes());
+                os.write(("Content-Type: application/zip\r\n").getBytes());
+                os.write(("Content-Transfer-Encoding: binary\r\n\r\n").getBytes());
+
+                byte[] fileBytes = Files.readAllBytes(tempZipFile.toPath());
+                os.write(fileBytes);
+                os.write(("\r\n--" + boundary + "--\r\n").getBytes());
+            }
+
+            // 서버 응답 처리
+            int responseCode = connection.getResponseCode();
+            System.out.println("jira에 압축파일 전송 성공: " + responseCode);
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                System.out.println("로그 및 사진 전송 성공");
+            } else {
+                System.out.println("파일 첨부 실패.");
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()))) {
+                    StringBuilder errorResponse = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        errorResponse.append(line);
+                    }
+                    System.out.println("Error Response: " + errorResponse);
+                }
+            }
+        } else {
+            System.out.println("로그 파일이나 이미지 파일이 없습니다.");
+        }
+    }
+
+    // .log와 .png 파일들을 하나의 배열로 합침
+    public static File[] concatenateFiles(File[] logFiles, File[] pngFiles) {
+        int logCount = logFiles == null ? 0 : logFiles.length;
+        int pngCount = pngFiles == null ? 0 : pngFiles.length;
+        File[] allFiles = new File[logCount + pngCount];
+
+        if (logFiles != null) {
+            System.arraycopy(logFiles, 0, allFiles, 0, logCount);
+        }
+        if (pngFiles != null) {
+            System.arraycopy(pngFiles, 0, allFiles, logCount, pngCount);
+        }
+
+        return allFiles;
     }
 
 

@@ -1,12 +1,18 @@
 package utils;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.options.UiAutomator2Options;
+import io.cucumber.java.Scenario;
 import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import steps.Hooks;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -20,6 +26,8 @@ public class AndroidManager {
 
     public static String error_close_id ="android:id/aerr_close";
     public static String wait_id ="android:id/aerr_wait";
+
+    private StringBuilder logBuffer = new StringBuilder();
 
     public AndroidManager(){
         //    private
@@ -97,6 +105,57 @@ public class AndroidManager {
 
     }
 
+    public void captureScreenshotAndLog(Throwable t,String Filename) {
+        // 스크린샷 캡처
+
+        File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        File screenshotReport = new File("src/main/save/screenshots/error_" + Filename + ".png");
+//+ System.currentTimeMillis() + 는 추가 할수도 안할수도
+
+
+        // 스크린샷 저장
+        try {
+            boolean isMoved = screenshot.renameTo(screenshotReport);
+            if (isMoved) {
+                System.out.println("스크린샷 저장 완료: " + Filename +  screenshotReport.getAbsolutePath());
+            } else {
+                System.out.println("스크린샷 저장 실패");
+            }
+        } catch (Exception e) {
+            System.out.println("스크린샷 캡처 실패: " + e.getMessage());
+        }
+
+        // 오류 로그 기록
+        StringBuilder logBuffer = new StringBuilder();
+        logBuffer.append("예외 발생: ").append(t.getMessage()).append("\n");
+
+        // 스택 트레이스를 기록
+        for (StackTraceElement element : t.getStackTrace()) {
+            logBuffer.append(element.toString()).append("\n");
+        }
+
+        // 콘솔에 출력
+        System.out.println(logBuffer.toString());
+
+        // 오류 로그를 파일에 기록
+        File logFile = new File("src/main/save/logs/error_" + Filename + ".log");
+        try (FileWriter writer = new FileWriter(logFile)) {
+            writer.write(logBuffer.toString());
+            System.out.println("로그 파일에 기록 완료: " + logFile.getAbsolutePath());
+        } catch (IOException e) {
+            System.out.println("로그 파일 기록 중 오류 발생: " + e.getMessage());
+        }
+    }
+
+    public static String getfilename(){
+        Scenario scenario = Hooks.getScenario();
+        String Filename = scenario.getName();
+        System.out.println("file 이름****: " + Filename);
+
+        return Filename;
+    }
+}
+
 
 //    public static WebElement error_close(String id) throws MalformedURLException{
 //
@@ -114,4 +173,4 @@ public class AndroidManager {
 //
 //    }
 
-}
+
