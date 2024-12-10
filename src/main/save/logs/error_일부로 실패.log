@@ -1,5 +1,5 @@
 예외 발생: 실패 유도
-steps.CommonThenStep.faildtest(CommonThenStep.java:31)
+steps.then.CommonThenStep.faildtest(CommonThenStep.java:28)
 java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
 java.base/java.lang.reflect.Method.invoke(Method.java:580)
 io.cucumber.java.Invoker.doInvoke(Invoker.java:66)

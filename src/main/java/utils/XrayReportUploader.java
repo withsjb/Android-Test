@@ -39,6 +39,8 @@ public class XrayReportUploader {
 
     static String logandimgzip;
 
+    static String mp4path;
+
     private static ZonedDateTime koreantime = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
 
     private static String formatdate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(koreantime);
@@ -58,6 +60,7 @@ public class XrayReportUploader {
             logpath = properties.getProperty("log.path");
             errorcaturepath = properties.getProperty("errorcature.path");
             logandimgzip = properties.getProperty("log.img.zip");
+            mp4path = properties.getProperty("mp4.path");
         }
     }
 
@@ -130,9 +133,9 @@ public class XrayReportUploader {
     public static void LinkTeatPlen(String executKey,String testplenKey, String jiraApiToken, String username )throws Exception {
         String TestPlenurl = JIRA_URL + "/rest/api/3/issueLink";
 
-        System.out.println(TestPlenurl);
-        System.out.println(executKey);
-        System.out.println(testplenKey);
+        System.out.println("테스트 플랜 주소값: " + TestPlenurl);
+        System.out.println("테스트 결과 키값" +  executKey);
+        System.out.println("테스트 플랜 키값: " +testplenKey);
       getissue(executKey, jiraApiToken, username);
         getissue(testplenKey, jiraApiToken, username);
 
@@ -187,7 +190,7 @@ public class XrayReportUploader {
                     response.append(line);
                 }
                 System.out.println("getissue Response: " + response);
-                System.out.println("___________");
+
             }
         } else {
             System.out.println("Failed: HTTP error code : " + responseCode);
@@ -202,8 +205,6 @@ public class XrayReportUploader {
         }
     }
 
-
-
             // Cucumber JSON 결과를 Xray에 업로드하는 메서드
        public static void uploadTestReport(String cucumberJsonFilePath) throws Exception {
         // Cucumber JSON 파일을 읽기
@@ -211,9 +212,7 @@ public class XrayReportUploader {
            System.out.println("cucumber 위치: "+ cucumberJsonFilePath);
         byte[] cucumberJsonBytes = Files.readAllBytes(cucumberJsonFile.toPath());
 
-
-
-        // HTTP 연결 설정
+// HTTP 연결 설정
         URL url = new URL(Xray_API_URL);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -224,12 +223,10 @@ public class XrayReportUploader {
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setDoOutput(true);
 
-
-        System.out.println(connection.getOutputStream());
         // JSON 데이터를 요청 본문에 추가
         try (OutputStream os = connection.getOutputStream()) {
             os.write(cucumberJsonBytes);
-            System.out.println("Sending JSON data: " + new String(cucumberJsonBytes, StandardCharsets.UTF_8));
+            System.out.println("JSON data: " + new String(cucumberJsonBytes, StandardCharsets.UTF_8));
 
 
         }
@@ -265,9 +262,9 @@ public class XrayReportUploader {
             uploadTestReport(cucumberJsonFilePath);
            String issuekey =  findrecentissue(projectKey, JIRA_TOKEN, USERNAME);
            String new_summary = "11st test " + "[" + formatdate + "]";
-           System.out.println(new_summary);
+           System.out.println("새로운 제목 : " + new_summary);
            update_summary(issuekey,new_summary,JIRA_TOKEN,USERNAME);
-            captureandlog(issuekey,USERNAME,JIRA_TOKEN,logpath,errorcaturepath);
+            captureandlog(issuekey,USERNAME,JIRA_TOKEN,logpath,errorcaturepath, mp4path);
            LinkTeatPlen(issuekey, oneonetestPlen, JIRA_TOKEN, USERNAME );
            System.out.println(cucumberJsonFilePath);
             System.out.println("Xray report 테스트 정상 실행");
@@ -295,10 +292,10 @@ public class XrayReportUploader {
     }
 
     // Jira에 파일 첨부 메서드
-    public static void captureandlog(String issueKey, String username, String jiraApiToken, String logDirPath, String pngDirPath) throws Exception {
-        String url = JIRA_URL + "/rest/api/3/issue/" + issueKey + "/attachments";
-        System.out.println("첨부파일 url" + url);
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+    public static void captureandlog(String issueKey, String username, String jiraApiToken, String logDirPath, String pngDirPath, String mp4DirPath) throws Exception {
+            String url = JIRA_URL + "/rest/api/3/issue/" + issueKey + "/attachments";
+            System.out.println("첨부파일 url" + url);
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString((username + ":" + jiraApiToken).getBytes()));
         connection.setRequestProperty("X-Atlassian-Token", "no-check");  //xsrf 우화
@@ -309,15 +306,16 @@ public class XrayReportUploader {
         // .log와 .png 파일 리스트 가져오기
         File[] logFiles = new File(logDirPath).listFiles((dir, name) -> name.endsWith(".log"));
         File[] pngFiles = new File(pngDirPath).listFiles((dir, name) -> name.endsWith(".png"));
+        File[] mp4Files = new File(mp4DirPath).listFiles((dir, name) -> name.endsWith(".mp4"));
 
         // 파일 리스트가 존재하면 압축 생성
-        if (logFiles != null || pngFiles != null) {
-            String zipFilePath = "logs_and_images.zip"; // 압축 파일 경로
+        if (logFiles != null || pngFiles != null || mp4Files != null) {
+            String zipFilePath = "error_logs_mp4_images.zip"; // 압축 파일 경로
 
-            // .log와 .png 파일을 압축
+            // 파일을 압축
             File tempZipFile = new File(zipFilePath);
             try {
-                zipFiles(concatenateFiles(logFiles, pngFiles), zipFilePath); // 두 종류 파일을 하나로 합쳐서 압축
+                zipFiles(concatenateFiles(logFiles, pngFiles, mp4Files), zipFilePath); // 두 종류 파일을 하나로 합쳐서 압축
             } catch (IOException e) {
                 System.out.println("파일 압축 중 오류 발생: " + e.getMessage());
                 return;
@@ -339,7 +337,7 @@ public class XrayReportUploader {
             int responseCode = connection.getResponseCode();
             System.out.println("jira에 압축파일 전송 성공: " + responseCode);
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                System.out.println("로그 및 사진 전송 성공");
+                System.out.println("압축 파일 전송 성공");
             } else {
                 System.out.println("파일 첨부 실패.");
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()))) {
@@ -357,16 +355,20 @@ public class XrayReportUploader {
     }
 
     // .log와 .png 파일들을 하나의 배열로 합침
-    public static File[] concatenateFiles(File[] logFiles, File[] pngFiles) {
+    public static File[] concatenateFiles(File[] logFiles, File[] pngFiles, File[] mp4Files) {
         int logCount = logFiles == null ? 0 : logFiles.length;
         int pngCount = pngFiles == null ? 0 : pngFiles.length;
-        File[] allFiles = new File[logCount + pngCount];
+        int mp4Count = mp4Files == null ? 0 : mp4Files.length;
+        File[] allFiles = new File[logCount + pngCount + mp4Count];
 
         if (logFiles != null) {
             System.arraycopy(logFiles, 0, allFiles, 0, logCount);
         }
         if (pngFiles != null) {
             System.arraycopy(pngFiles, 0, allFiles, logCount, pngCount);
+        }
+        if (mp4Files != null) {
+            System.arraycopy(mp4Files, 0, allFiles, logCount + pngCount, mp4Count);
         }
 
         return allFiles;

@@ -29,6 +29,8 @@ dependencies {
     implementation 'org.projectlombok:lombok:1.18.34'
     implementation group: 'org.springframework', name: 'spring-context', version: '6.1.12'
     implementation group: 'org.json', name: 'json', version: '20240303'
+    implementation group: 'com.github.stephenc.monte', name: 'monte-screen-recorder', version: '0.7.7.0'
+
 //    implementation 'org.codehaus.groovy:groovy:4.0.22'
 }
 

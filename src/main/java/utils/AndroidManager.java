@@ -2,6 +2,7 @@ package utils;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.options.UiAutomator2Options;
 import io.cucumber.java.Scenario;
+import org.monte.screenrecorder.ScreenRecorder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -11,9 +12,17 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import steps.Hooks;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+/**
+ 비디오 관련 import
+ */
+import org.monte.media.Format;
+import org.monte.media.math.Rational;
+import static org.monte.media.FormatKeys.*;
+import static org.monte.media.VideoFormatKeys.*;
+
+
+import java.awt.*;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,6 +30,8 @@ import java.time.Duration;
 import java.util.List;
 // Singleton Design Pattern
 public class AndroidManager {
+
+    private ScreenRecorder screenRecorder;
     public static AndroidDriver driver;
     public static WebDriverWait wait;
 
@@ -154,23 +165,67 @@ public class AndroidManager {
 
         return Filename;
     }
+
+
+    //비디오 시작
+    public void startRecording(String fileName) throws Exception {
+//        GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment()
+//                .getDefaultScreenDevice()
+//                .getDefaultConfiguration();
+//        screenRecorder = new ScreenRecorder(gc, null, new Format(MediaTypeKey, MediaType.FILE, MimeTypeKey, MIME_AVI),
+//                new Format(MediaTypeKey, MediaType.VIDEO, EncodingKey, ENCODING_AVI_TECHSMITH_SCREEN_CAPTURE,
+//                        CompressorNameKey, ENCODING_AVI_TECHSMITH_SCREEN_CAPTURE, DepthKey, 24,
+//                        FrameRateKey, Rational.valueOf(15), QualityKey, 1.0f, KeyFrameIntervalKey, 15 * 60),
+//                new Format(MediaTypeKey, MediaType.VIDEO, EncodingKey, "black", FrameRateKey, Rational.valueOf(30)),
+//                null, new File(fileName));
+//        screenRecorder.start();
+
+        String command = "adb shell screenrecord /sdcard/" + fileName + ".mp4"; // 파일 경로는 적절히 수정하세요
+        Process process = Runtime.getRuntime().exec(command);
+        System.out.println("녹화 시작: " + command);
+    }
+
+    //비디오 종료
+    public void stopRecording(String filename) throws Exception {
+        // 녹화 종료 명령어 실행
+        String stopRecordingCommand = "adb shell pkill -l2 screenrecord"; // 녹화 종료
+        Process stopRecordingProcess = Runtime.getRuntime().exec(stopRecordingCommand);
+        stopRecordingProcess.waitFor();
+
+        // 녹화가 끝난 후, 파일이 정상적으로 생성되었는지 확인
+        String filePath = "/sdcard/" + filename + ".mp4";
+        String checkFileCommand = "adb shell ls -l " + filePath; // 파일 존재 및 크기 확인
+        Process checkFileProcess = Runtime.getRuntime().exec(checkFileCommand);
+        checkFileProcess.waitFor();
+
+        // 파일 크기가 0이 아니면 로컬로 가져오기
+        String pullCommand = "adb pull " + filePath + " src/main/save/video/" + filename + ".mp4";
+
+        // 파일 크기가 0인 경우 재시도 혹은 오류 처리
+        String fileSizeCommand = "adb shell stat -c %s " + filePath;  // 파일 크기 확인
+        Process fileSizeProcess = Runtime.getRuntime().exec(fileSizeCommand);
+        fileSizeProcess.waitFor();
+
+        // 프로세스 출력 값 (파일 크기) 확인
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileSizeProcess.getInputStream()))) {
+            String fileSize = reader.readLine();
+            if (fileSize != null && Integer.parseInt(fileSize) > 0) {
+                // 파일이 정상적으로 생성되었으면 pull 명령어 실행
+                System.out.println("파일이 정상적으로 생성되었습니다. 로컬로 복사합니다.");
+                Process pullProcess = Runtime.getRuntime().exec(pullCommand);
+                pullProcess.waitFor();
+                System.out.println("녹화 종료, 비디오 저장 완료");
+            } else {
+                System.out.println("파일 크기가 0입니다. 녹화가 제대로 완료되지 않았을 수 있습니다.");
+            }
+        } catch (IOException e) {
+            System.out.println("파일 크기 확인 중 오류 발생: " + e.getMessage());
+        }
+    }
+
+
 }
 
 
-//    public static WebElement error_close(String id) throws MalformedURLException{
-//
-//        try {
-//            if (AndroidManager.getElementById(error_close_id) != null) {
-//                AndroidManager.getElementById(error_close_id).click();
-//                System.out.println("err 발생시 앱을 종료합니다.");
-//                throw new RuntimeException("App closed due to error pop-up.");
-//            }
-//        }catch(Exception e) {
-//            System.out.println("Error close button not found or could not be clicked.");
-//        }
-//
-//        return (ExpectedConditions.visibilityOfElementLocated(By.id(id)));
-//
-//    }
 
 

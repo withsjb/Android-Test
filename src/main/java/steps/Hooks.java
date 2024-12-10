@@ -22,6 +22,9 @@ public class Hooks {
     private ByteArrayOutputStream logStream = new ByteArrayOutputStream(); // 일반 로그 스트림
     private ByteArrayOutputStream errorStream = new ByteArrayOutputStream(); // 에러 로그 스트림
 
+    private String recordingFilePath;
+
+    private AndroidManager androidManager = new AndroidManager();
     private static Scenario scenario;
 
     public Hooks() {
@@ -40,95 +43,107 @@ public class Hooks {
         return scenario;
     }
 
-    @Before
-    public void startapp() throws MalformedURLException {
-        System.out.println("before 테스트 정상 실행");
-        logBuffer.append("before 테스트 정상 실행\n");
 
-        if (driver == null) {
-            driver = AndroidManager.getDriver();
+    private void deleteFilesInDirectory(File directory) {
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    // 서브디렉토리라면 재귀적으로 삭제
+                    deleteFilesInDirectory(file);
+                }
+                if (file.exists() && file.isFile()) {
+                    if (file.delete()) {
+                        System.out.println("파일 삭제 완료: " + file.getAbsolutePath());
+                    } else {
+                        System.out.println("파일 삭제 실패: " + file.getAbsolutePath());
+                    }
+                }
+            }
         }
-
-        // 콘솔 출력 스트림 가로채기
-        PrintStream logPrintStream = new PrintStream(logStream);
-        PrintStream errorPrintStream = new PrintStream(errorStream);
-        System.setOut(logPrintStream);
-        System.setErr(errorPrintStream);
     }
+
+    public void startvideo(Scenario scenario)throws Exception{
+        String scenarioName = scenario.getName().replaceAll(" ", "_");
+//        recordingFilePath = "src/main/save/video/" + scenarioName + ".avi";
+        androidManager.startRecording(scenarioName);
+
+        System.out.println("hook 에 startvideo 녹화를 시작합니다. : " + scenarioName);
+
+    }
+
+    public void stopvideo(Scenario scenario, String filename)throws Exception{
+        String recordingFilePath = "src/main/save/video/" + filename + ".mp4";
+        System.out.println("삭제할 영상 경로: " + recordingFilePath);
+        androidManager.stopRecording(filename);
+
+        if (scenario.isFailed()) {
+            System.out.println("테스트 실패 녹화 저장: " + recordingFilePath);
+            System.out.println("영상 저장 경로(저장)" + recordingFilePath);
+            System.out.println("녹화를 종료합니다.");
+        } else {
+            // 테스트 성공 시, 생성된 mp4 파일을 삭제
+            File recordingFile = new File(recordingFilePath);
+            if (recordingFile.exists()) {
+                if (recordingFile.delete()) {
+                    System.out.println("테스트 성공, 영상 파일 삭제됨: " + recordingFilePath);
+                } else {
+                    System.out.println("파일 삭제 실패: " + recordingFilePath);
+                }
+            }
+        }
+    }
+
+    @Before
+    public void startapp(Scenario scenario) throws MalformedURLException {
+        try {
+            System.out.println("before 테스트 정상 실행");
+            logBuffer.append("before 테스트 정상 실행\n");
+
+            if (driver == null) {
+                driver = AndroidManager.getDriver();
+            }
+            startvideo(scenario);
+
+            // 콘솔 출력 스트림 가로채기
+            PrintStream logPrintStream = new PrintStream(logStream);
+            PrintStream errorPrintStream = new PrintStream(errorStream);
+            System.setOut(logPrintStream);
+            System.setErr(errorPrintStream);
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+
+        }
+    }
+
+
 
     @After
-    public void finisapp() {
-        System.out.println("after 테스트 진입");
-        logBuffer.append("after 테스트 진입\n");
+    public void finisapp(Scenario scenario) {
+            String scenariofile = scenario.getName().replaceAll(" ", "_");
 
-        Jirafeatureissue.featureupload(new String[]{});
-        System.out.println("after 테스트 정상 실행");
-        logBuffer.append("after 테스트 정상 실행\n");
+        try {
+            System.out.println("after 테스트 진입");
+            logBuffer.append("after 테스트 진입\n");
 
-        // 원래 출력 스트림으로 복구
-        System.setOut(originalOut);
-        System.setErr(originalErr);
+            Jirafeatureissue.featureupload(new String[]{});
+
+            stopvideo(scenario, scenariofile);
+            System.out.println("after 테스트 정상 실행");
+            logBuffer.append("after 테스트 정상 실행\n");
+
+            // 원래 출력 스트림으로 복구
+            System.setOut(originalOut);
+            System.setErr(originalErr);
+
+//            Thread.sleep(20000); // 60000 밀리초 = 1분
+            System.out.println("1분 대기 후 종료" + scenariofile);
+        }catch (Exception e) {
+            System.out.println("after 테스트 진입 실패: ");
+            System.out.println(e.getMessage());
+        }
     }
 
-//    @AfterStep
-//    public void captureScreenshotOnFailure(Scenario scenario) {
-//        // 실패한 경우만 처리
-//        if (scenario.isFailed()) {
-//            System.out.println("테스트 실패: 스크린샷 및 로그 저장 시작");
-//            logBuffer.append("테스트 실패: 스크린샷 및 로그 저장 시작\n");
-//
-//            try {
-//                // 스크린샷 캡처 및 저장
-//                File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-//                File screenshotReport = new File("src/main/save/screenshots/" + scenario.getName() + ".png");
-//
-//                boolean isMoved = screenshot.renameTo(screenshotReport);
-//                if (isMoved) {
-//                    System.out.println("스크린샷 저장 완료: " + screenshotReport.getAbsolutePath());
-//                    logBuffer.append("스크린샷 저장 완료: ").append(screenshotReport.getAbsolutePath()).append("\n");
-//                } else {
-//                    System.out.println("스크린샷 저장 실패");
-//                    logBuffer.append("스크린샷 저장 실패\n");
-//                }
-//
-//                // 스텝 내에서 발생한 예외 정보 기록
-////                System.out.println("스텝 내에서 발생한 예외를 기록 중...");
-////                logBuffer.append("스텝 내에서 발생한 예외를 기록 중...\n");
-//
-//                // 예외를 강제로 던져서 로그 기록
-//                try {
-//                    // 예외를 직접 던져보기
-////                    throw new RuntimeException("런 타임 에러 오류 잡기");
-//                } catch (Throwable t) {
-//                    // 예외를 잡고 로그에 기록
-//                    System.out.println("예외 또는 오류 발생: " + t.getMessage());
-//                    logBuffer.append("예외 또는 오류 발생: ").append(t.getMessage()).append("\n");
-//
-//                    // 스택 트레이스를 기록
-//                    for (StackTraceElement element : t.getStackTrace()) {
-//                        System.out.println(element.toString());
-//                        logBuffer.append(element.toString()).append("\n");
-//                    }
-//                }
-//
-//                // 로그 파일 생성 및 저장
-//                File logFile = new File("src/main/save/logs/" + scenario.getName() + ".log");
-//                try (FileWriter writer = new FileWriter(logFile)) {
-//                    writer.write(logBuffer.toString());
-//                }
-//                System.out.println("로그 저장 완료: " + logFile.getAbsolutePath());
-//
-//            } catch (IOException e) {
-//                // 스크린샷이나 로그 저장 중 발생한 예외 처리
-//                System.out.println("스크린샷 또는 로그 저장 중 오류 발생: " + e.getMessage());
-//                logBuffer.append("스크린샷 또는 로그 저장 중 오류 발생: ").append(e.getMessage()).append("\n");
-//            } catch (Throwable t) {
-//                // 기타 모든 예외 처리
-//                System.out.println("알 수 없는 오류 발생: " + t.getMessage());
-//                logBuffer.append("알 수 없는 오류 발생: ").append(t.getMessage()).append("\n");
-//            }
-//        }
-//    }
 
 
 
