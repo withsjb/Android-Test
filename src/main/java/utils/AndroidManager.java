@@ -169,16 +169,7 @@ public class AndroidManager {
 
     //비디오 시작
     public void startRecording(String fileName) throws Exception {
-//        GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment()
-//                .getDefaultScreenDevice()
-//                .getDefaultConfiguration();
-//        screenRecorder = new ScreenRecorder(gc, null, new Format(MediaTypeKey, MediaType.FILE, MimeTypeKey, MIME_AVI),
-//                new Format(MediaTypeKey, MediaType.VIDEO, EncodingKey, ENCODING_AVI_TECHSMITH_SCREEN_CAPTURE,
-//                        CompressorNameKey, ENCODING_AVI_TECHSMITH_SCREEN_CAPTURE, DepthKey, 24,
-//                        FrameRateKey, Rational.valueOf(15), QualityKey, 1.0f, KeyFrameIntervalKey, 15 * 60),
-//                new Format(MediaTypeKey, MediaType.VIDEO, EncodingKey, "black", FrameRateKey, Rational.valueOf(30)),
-//                null, new File(fileName));
-//        screenRecorder.start();
+
 
         String command = "adb shell screenrecord /sdcard/" + fileName + ".mp4"; // 파일 경로는 적절히 수정하세요
         Process process = Runtime.getRuntime().exec(command);

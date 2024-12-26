@@ -187,7 +187,7 @@ public class Jiraissuecreate {
             String issueKey = createIssue(JIRA_URL, USERNAME, JIRA_API_TOKEN, "Test Issue Summary", "Description of the issue");
 
             if (issueKey != null) {
-                System.out.println("이슈가 생성되었습니다!: " + issueKey);
+                System.out.println("이슈가 생성되었습니다! *****: " + issueKey);
                 File zipFile = zipFeatureFile(FeaturePath);
                 System.out.println("Feature file zipped successfully: " + zipFile.getAbsolutePath());
                 importFeatureFileToXray(issueKey, zipFile);

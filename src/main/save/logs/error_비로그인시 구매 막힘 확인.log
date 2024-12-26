@@ -1,13 +1,25 @@
-예외 발생: Expected condition failed: waiting for visibility of element located by By.id: com.elevenst:id/search_input (tried for 10 second(s) with 500 milliseconds interval)
+예외 발생: An element could not be located on the page using the given search parameters.
+For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception
 Build info: version: '4.26.0', revision: '8ccf0219d7'
 System info: os.name: 'Mac OS X', os.arch: 'aarch64', os.version: '14.6', java.version: '21.0.2'
 Driver info: io.appium.java_client.android.AndroidDriver
-Capabilities {appium:appActivity: com.elevenst.intro.Intro, appium:appPackage: com.elevenst, appium:automationName: uiautomator2, appium:databaseEnabled: false, appium:desired: {appActivity: com.elevenst.intro.Intro, appPackage: com.elevenst, automationName: uiautomator2, platformName: ANDROID, udid: emulator-5554}, appium:deviceApiLevel: 30, appium:deviceManufacturer: Google, appium:deviceModel: sdk_gphone_arm64, appium:deviceName: emulator-5554, appium:deviceScreenDensity: 160, appium:deviceScreenSize: 1080x1920, appium:deviceUDID: emulator-5554, appium:javascriptEnabled: true, appium:locationContextEnabled: false, appium:networkConnectionEnabled: true, appium:pixelRatio: 1, appium:platformVersion: 11, appium:statBarHeight: 24, appium:takesScreenshot: true, appium:udid: emulator-5554, appium:viewportRect: {height: 1896, left: 0, top: 24, width: 1080}, appium:warnings: {}, appium:webStorageEnabled: false, platformName: ANDROID}
-Session ID: 74237538-4c94-41a5-9f79-7aabea1bfa66
-org.openqa.selenium.support.ui.WebDriverWait.timeoutException(WebDriverWait.java:84)
-org.openqa.selenium.support.ui.FluentWait.until(FluentWait.java:228)
-utils.AndroidManager.getElementById(AndroidManager.java:92)
-steps.when.Test3WhenStep.searchbag(Test3WhenStep.java:59)
+Command: [63e2cc7b-1138-45de-9890-b9e8fd32a7cf, findElement {using=xpath, value=/html/body/div/div[2]/div[2]/div/div/div[2]/div[2]/section[2]/div/ul/li[1]}]
+Capabilities {appium:appActivity: com.elevenst.intro.Intro, appium:appPackage: com.elevenst, appium:automationName: uiautomator2, appium:databaseEnabled: false, appium:desired: {appActivity: com.elevenst.intro.Intro, appPackage: com.elevenst, automationName: uiautomator2, platformName: ANDROID, udid: emulator-5554}, appium:deviceApiLevel: 30, appium:deviceManufacturer: Google, appium:deviceModel: sdk_gphone_arm64, appium:deviceName: emulator-5554, appium:deviceScreenDensity: 160, appium:deviceScreenSize: 1080x1920, appium:deviceUDID: emulator-5554, appium:javascriptEnabled: true, appium:locationContextEnabled: false, appium:networkConnectionEnabled: true, appium:pixelRatio: 1, appium:platformVersion: 11, appium:statBarHeight: 24, appium:takesScreenshot: true, appium:udid: emulator-5554, appium:viewportRect: {height: 1840, left: 0, top: 24, width: 1080}, appium:warnings: {}, appium:webStorageEnabled: false, platformName: ANDROID}
+Session ID: 63e2cc7b-1138-45de-9890-b9e8fd32a7cf
+java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+org.openqa.selenium.remote.ErrorCodec.decode(ErrorCodec.java:167)
+org.openqa.selenium.remote.codec.w3c.W3CHttpResponseCodec.decode(W3CHttpResponseCodec.java:138)
+org.openqa.selenium.remote.codec.w3c.W3CHttpResponseCodec.decode(W3CHttpResponseCodec.java:50)
+org.openqa.selenium.remote.HttpCommandExecutor.execute(HttpCommandExecutor.java:190)
+io.appium.java_client.remote.AppiumCommandExecutor.execute(AppiumCommandExecutor.java:237)
+org.openqa.selenium.remote.RemoteWebDriver.execute(RemoteWebDriver.java:545)
+org.openqa.selenium.remote.ElementLocation$ElementFinder$2.findElement(ElementLocation.java:165)
+org.openqa.selenium.remote.ElementLocation.findElement(ElementLocation.java:59)
+org.openqa.selenium.remote.RemoteWebDriver.findElement(RemoteWebDriver.java:368)
+org.openqa.selenium.remote.RemoteWebDriver.findElement(RemoteWebDriver.java:362)
+steps.when.Test3WhenStep.clickonebtn(Test3WhenStep.java:83)
 java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
 java.base/java.lang.reflect.Method.invoke(Method.java:580)
 io.cucumber.java.Invoker.doInvoke(Invoker.java:66)

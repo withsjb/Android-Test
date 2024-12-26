@@ -68,7 +68,7 @@ public class XrayReportUploader {
       //  jira 최근 이슈 jql 로 찾기
         public static String findrecentissue(String projectKey, String jiraApiToken, String username)throws Exception{
 
-            String jql = "project = " + projectKey  + " AND issuetype = 'BUG' ORDER BY created DESC";
+            String jql = "project = " + projectKey  + " AND issuetype = 'Test Execution' ORDER BY created DESC";
             String searchUrl = JIRA_URL + "/rest/api/3/search?jql=" + URLEncoder.encode(jql, StandardCharsets.UTF_8);
             System.out.println(searchUrl);
 
@@ -251,7 +251,7 @@ public class XrayReportUploader {
         try {
             // Cucumber JSON 파일 경로와 Jira 이슈 키를 전달
             String resourece = "src/main/resources/application.properties";
-            String projectKey = "SCRUM";
+            String projectKey = "TW";
 
             loadProperties(resourece);
             System.out.println("Xray API URL: " + Xray_API_URL);
