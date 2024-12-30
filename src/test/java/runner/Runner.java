@@ -57,21 +57,6 @@ public class Runner {
                 List<Map<String, Object>> currentResults = AndroidManager.readCucumberJson(CUCUMBER_JSON);
                 AndroidManager.writeCucumberJson(CUCUMBER_WEEK_JSON, currentResults);
             }
-            // cucumber.json 읽기
-//            List<Map<String, Object>> currentResults = AndroidManager.readCucumberJson(CUCUMBER_JSON);
-//
-//            // cucumberweek.json 파일 읽기
-//            List<Map<String, Object>> weekResults = AndroidManager.readCucumberJson(CUCUMBER_WEEK_JSON);
-//
-//            // 새로운 결과를 주어진 파일에 추가(같은 날짜면 갱신)
-//            weekResults = AndroidManager.updateResultsWithCurrentDate(weekResults, currentResults);
-//
-//            // 결과 출력하여 확인
-//            System.out.println("Updated weekResults: " + weekResults);
-//
-//            // cucumberweek.json에 결과 저장
-//            AndroidManager.writeCucumberJson(CUCUMBER_WEEK_JSON, weekResults);
-//            AndroidManager.copyAndUpdateResults(CUCUMBER_JSON, CUCUMBER_WEEK_JSON);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
