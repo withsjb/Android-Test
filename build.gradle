@@ -30,8 +30,9 @@ dependencies {
     implementation group: 'org.springframework', name: 'spring-context', version: '6.1.12'
     implementation group: 'org.json', name: 'json', version: '20240303'
     implementation group: 'com.github.stephenc.monte', name: 'monte-screen-recorder', version: '0.7.7.0'
-
+    implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
 //    implementation 'org.codehaus.groovy:groovy:4.0.22'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.18.2'
 }
 
 
