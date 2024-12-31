@@ -311,6 +311,11 @@ public class AndroidManager {
         objectMapper.writeValue(file, data);
     }
 
+    //json 파일 읽기
+    public static String readJsonFromFile(String filePath) throws IOException {
+        return new String(Files.readAllBytes(Paths.get(filePath)));
+    }
+
 }
 
 

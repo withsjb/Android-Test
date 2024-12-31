@@ -98,16 +98,23 @@ public class XrayReportUploader {
 
 
         //update isuue
-        public static void update_summary(String issueKey, String summary,String jiraApiToken, String username )throws Exception {
+        public static void update_summary_description(String issueKey, String summary ,String jiraApiToken, String username )throws Exception {
             String url = JIRA_URL + "/rest/api/3/issue/" + issueKey;
             System.out.println(url);
             HttpURLConnection connection = AndroidManager.connect(url, "PUT", username, jiraApiToken);
 
+            String description = AndroidManager.readJsonFromFile("src/main/resources/jiraissue.json");
+
+
             String jsonPayload = "{"
                     + "\"fields\": {"
-                    + "\"summary\": \"" + summary + "\""
+                    + "\"summary\": \"" + summary + "\","
+                    + "\"description\": " + description
                     + "}"
                     + "}";
+
+
+
 
             // 요청 본문을 출력 스트림에 작성
             connection.setDoOutput(true);
@@ -136,7 +143,7 @@ public class XrayReportUploader {
         System.out.println("테스트 플랜 주소값: " + TestPlenurl);
         System.out.println("테스트 결과 키값" +  executKey);
         System.out.println("테스트 플랜 키값: " +testplenKey);
-      getissue(executKey, jiraApiToken, username);
+        getissue(executKey, jiraApiToken, username);
         getissue(testplenKey, jiraApiToken, username);
 
 
@@ -189,7 +196,7 @@ public class XrayReportUploader {
                 while ((line = reader.readLine()) != null) {
                     response.append(line);
                 }
-                System.out.println("getissue Response: " + response);
+//                System.out.println("getissue Response: " + response);
 
             }
         } else {
@@ -262,8 +269,11 @@ public class XrayReportUploader {
             uploadTestReport(cucumberJsonFilePath);
            String issuekey =  findrecentissue(projectKey, JIRA_TOKEN, USERNAME);
            String new_summary = "11st test " + "[" + formatdate + "]";
-           System.out.println("새로운 제목 : " + new_summary);
-           update_summary(issuekey,new_summary,JIRA_TOKEN,USERNAME);
+
+
+
+            System.out.println("새로운 제목 : " + new_summary);
+           update_summary_description(issuekey,new_summary,JIRA_TOKEN,USERNAME);
             captureandlog(issuekey,USERNAME,JIRA_TOKEN,logpath,errorcaturepath, mp4path);
            LinkTeatPlen(issuekey, oneonetestPlen, JIRA_TOKEN, USERNAME );
            System.out.println(cucumberJsonFilePath);
