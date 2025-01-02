@@ -10,7 +10,7 @@
       "content": [
         {
           "type": "text",
-          "text": "[이슈 상세]"
+          "text": "[테스트 실패 원인]"
         }
       ]
     },
@@ -19,7 +19,7 @@
       "content": [
         {
           "type": "text",
-          "text": "{issueDetail}"
+          "text": "**FailissueDetail**"
         }
       ]
     },
@@ -31,7 +31,7 @@
       "content": [
         {
           "type": "text",
-          "text": "[중요 이슈]"
+          "text": "[실패 로그]"
         }
       ]
     },
@@ -40,7 +40,7 @@
       "content": [
         {
           "type": "text",
-          "text": "{importantIssue}"
+          "text": "\n{fail log}\n{code}(위와 같은 로그 데이터)"
         }
       ]
     },
@@ -52,7 +52,7 @@
       "content": [
         {
           "type": "text",
-          "text": "[중요 이슈]1"
+          "text": "[시나리오 스탭별 결과]"
         }
       ]
     },
@@ -61,7 +61,7 @@
       "content": [
         {
           "type": "text",
-          "text": "{item1}"
+          "text": "**stepresult**"
         }
       ]
     },
@@ -73,7 +73,7 @@
       "content": [
         {
           "type": "text",
-          "text": "[중요 이슈2]"
+          "text": "[테이블]"
         }
       ]
     },
@@ -82,193 +82,7 @@
       "content": [
         {
           "type": "text",
-          "text": "{item2}"
-        }
-      ]
-    },
-    {
-      "type": "heading",
-      "attrs": {
-        "level": 1
-      },
-      "content": [
-        {
-          "type": "text",
-          "text": "[중요 이슈]3"
-        }
-      ]
-    },
-    {
-      "type": "table",
-      "attrs": {
-        "isNumberColumnEnabled": false,
-        "layout": "default"
-      },
-      "content": [
-        {
-          "type": "tableRow",
-          "content": [
-            {
-              "type": "tableHeader",
-              "attrs": {},
-              "content": [
-                {
-                  "type": "paragraph",
-                  "content": [
-                    {
-                      "type": "text",
-                      "text": "열 1",
-                      "marks": [
-                        {
-                          "type": "strong"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "tableHeader",
-              "attrs": {},
-              "content": [
-                {
-                  "type": "paragraph",
-                  "content": [
-                    {
-                      "type": "text",
-                      "text": "열 2",
-                      "marks": [
-                        {
-                          "type": "strong"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "tableHeader",
-              "attrs": {},
-              "content": [
-                {
-                  "type": "paragraph",
-                  "content": [
-                    {
-                      "type": "text",
-                      "text": "열 3",
-                      "marks": [
-                        {
-                          "type": "strong"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "tableRow",
-          "content": [
-            {
-              "type": "tableCell",
-              "attrs": {},
-              "content": [
-                {
-                  "type": "paragraph",
-                  "content": [
-                    {
-                      "type": "text",
-                      "text": "데이터1"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "tableCell",
-              "attrs": {},
-              "content": [
-                {
-                  "type": "paragraph",
-                  "content": [
-                    {
-                      "type": "text",
-                      "text": "데이터2"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "tableCell",
-              "attrs": {},
-              "content": [
-                {
-                  "type": "paragraph",
-                  "content": [
-                    {
-                      "type": "text",
-                      "text": "데이터3"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "tableRow",
-          "content": [
-            {
-              "type": "tableCell",
-              "attrs": {},
-              "content": [
-                {
-                  "type": "paragraph",
-                  "content": [
-                    {
-                      "type": "text",
-                      "text": "데이터4"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "tableCell",
-              "attrs": {},
-              "content": [
-                {
-                  "type": "paragraph",
-                  "content": [
-                    {
-                      "type": "text",
-                      "text": "데이터5"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "tableCell",
-              "attrs": {},
-              "content": [
-                {
-                  "type": "paragraph",
-                  "content": [
-                    {
-                      "type": "text",
-                      "text": "데이터6"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          "text": "|| 열 1 || 열 2 || 열 3 ||\n|-------|-------|-------|\n| 데이터1 | 데이터2 | 데이터3 |\n| 데이터4 | 데이터5 | 데이터6 |"
         }
       ]
     }

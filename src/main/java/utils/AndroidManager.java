@@ -35,13 +35,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 // Singleton Design Pattern
 public class AndroidManager {
+
+    static String JIRA_URL;
+    static String JIRA_API_TOKEN;
+    static String USERNAME;
 
     private ScreenRecorder screenRecorder;
     public static AndroidDriver driver;
@@ -95,6 +97,23 @@ public class AndroidManager {
         return wait;
     }
 
+    public static void loadProperties(String propertiesFilePath) {
+        Properties properties = new Properties();
+
+        try (InputStream input = new FileInputStream(propertiesFilePath)) {
+            properties.load(input);
+            JIRA_URL = properties.getProperty("jira.url");
+            JIRA_API_TOKEN = properties.getProperty("jira.api.token");
+            USERNAME = properties.getProperty("username");
+//            FeaturePath = properties.getProperty("feature.path");
+//            Xray_API_URL = properties.getProperty("xray.api.url");
+//            XRAY_API_TOKEN = properties.getProperty("xray.api.token");
+        }catch (IOException e) {
+            System.out.println("Properties 파일 로딩 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 
     public static WebElement getElementById(String id){
 
@@ -129,9 +148,12 @@ public class AndroidManager {
 
     }
 
+
+
     public void captureScreenshotAndLog(Throwable t,String Filename) {
         // 스크린샷 캡처
-
+        String resourece = "src/main/resources/application.properties";
+        loadProperties(resourece);
         File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
         File screenshotReport = new File("src/main/save/screenshots/error_" + Filename + ".png");
 //+ System.currentTimeMillis() + 는 추가 할수도 안할수도
@@ -160,10 +182,17 @@ public class AndroidManager {
 
         // 콘솔에 출력
         System.out.println(logBuffer.toString());
+        System.out.println("로그버퍼 작동&&&&");
+        String logdetail = logBuffer.toString();
+//        String logdetaila = logdetail.replace("\n", "\\n").replace("\"", "\\\"");
+        Jiradefectissuecreate.defectissuecreate(logdetail ,JIRA_URL, USERNAME,JIRA_API_TOKEN);
+
 
         // 오류 로그를 파일에 기록
         File logFile = new File("src/main/save/logs/error_" + Filename + ".log");
         try (FileWriter writer = new FileWriter(logFile)) {
+
+
             writer.write(logBuffer.toString());
             System.out.println("로그 파일에 기록 완료: " + logFile.getAbsolutePath());
         } catch (IOException e) {

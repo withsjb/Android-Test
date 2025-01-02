@@ -129,6 +129,8 @@ public class Hooks {
             Jirafeatureissue.featureupload(new String[]{});
 
             stopvideo(scenario, scenariofile);
+
+
             System.out.println("after 테스트 정상 실행");
             logBuffer.append("after 테스트 정상 실행\n");
 
@@ -143,7 +145,6 @@ public class Hooks {
             System.out.println(e.getMessage());
         }
     }
-
 
 
 
