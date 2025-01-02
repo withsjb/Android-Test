@@ -40,7 +40,7 @@
       "content": [
         {
           "type": "text",
-          "text": "\n{fail log}\n{code}(위와 같은 로그 데이터)"
+          "text": "{code}{{fail log}}{code}"
         }
       ]
     },

@@ -38,8 +38,6 @@ public class Jiradefectissuecreate {
         // 로그 내용을 description에 맞게 대체 (먼저 값을 넣고, 그 후에 특수 문자 치환)
         String faillogdetail = descriptionJson.replace("{fail log}", logdetail);
 
-
-
         // 특수 문자 처리 (줄바꿈, 큰따옴표 등)
         String description = faillogdetail.replace("\n", "\\n").replace("\"", "\\\"");
 
@@ -48,7 +46,7 @@ public class Jiradefectissuecreate {
                 + "\"fields\": {"
                 + "\"project\": { \"key\": \"TW\" },"
                 + "\"summary\": \"" + summary + "\","
-                + "\"description\": \"" + description + "\","
+                + "\"description\": \"" + description.replace("{fail log}", description) + "\","
                 + "\"issuetype\": { \"name\": \"Defect\" }"
                 + "}"
                 + "}";
