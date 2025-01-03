@@ -32,21 +32,21 @@ public class Jiradefectissuecreate {
         }
     }
 
-    public static String createIssue(String jiraUrl, String username, String apiToken, String summary, String logdetail) throws Exception {
-        String descriptionJson = AndroidManager.readJsonFromFile("src/main/resources/jiraissue.json");
+    public static String createIssue( String logdetail,String errreason ,String jiraUrl, String username, String apiToken, String summary) throws Exception {
+        String log = logdetail.replace("\n", "\\n").replace("\"", "\\\"");
+        String errre = errreason.replace("\n", "\\n").replace("\"", "\\\"");
+        System.out.println("에러 이유(defect 생성 44): " + errreason);
+        String description = String.format(
 
-        // 로그 내용을 description에 맞게 대체 (먼저 값을 넣고, 그 후에 특수 문자 치환)
-        String faillogdetail = descriptionJson.replace("{fail log}", logdetail);
+                errre +
+                "{code}" + log + "{code}"
+                );
 
-        // 특수 문자 처리 (줄바꿈, 큰따옴표 등)
-        String description = faillogdetail.replace("\n", "\\n").replace("\"", "\\\"");
-
-        // Jira Issue 생성 요청 JSON
         String jsonInputString = "{"
                 + "\"fields\": {"
                 + "\"project\": { \"key\": \"TW\" },"
                 + "\"summary\": \"" + summary + "\","
-                + "\"description\": \"" + description.replace("{fail log}", description) + "\","
+                + "\"description\": \"" + description + "\","
                 + "\"issuetype\": { \"name\": \"Defect\" }"
                 + "}"
                 + "}";
@@ -186,11 +186,11 @@ public class Jiradefectissuecreate {
     }
 
 
-    public static void defectissuecreate(String logdetail, String jira_url, String username, String jira_api){
+    public static void defectissuecreate(String logdetail,String errorreson , String jira_url, String username, String jira_api){
         try {
             String summary = "defect 에러";
 
-            String issueKey = createIssue(jira_url, username, jira_api, summary, logdetail);
+            String issueKey = createIssue(logdetail,errorreson ,jira_url, username, jira_api, summary);
 
             if (issueKey != null) {
                 System.out.println("defect 이슈가 생성되었습니다! *****: " + issueKey);
@@ -210,7 +210,7 @@ public class Jiradefectissuecreate {
             String new_description = "예외 발생: 실패 유도\n";
             String redescription = new_description.replace("\n", "\\n").replace("\"", "\\\"");
 
-            defectissuecreate(redescription, JIRA_URL, USERNAME, JIRA_API_TOKEN);
+            defectissuecreate(redescription,redescription, JIRA_URL, USERNAME, JIRA_API_TOKEN);
 
         } catch (Exception e) {
             e.printStackTrace();

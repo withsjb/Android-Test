@@ -158,6 +158,9 @@ public class AndroidManager {
         File screenshotReport = new File("src/main/save/screenshots/error_" + Filename + ".png");
 //+ System.currentTimeMillis() + 는 추가 할수도 안할수도
 
+        String ui = "예제 UI"; // 실제 값으로 교체
+        String anotherUi = "다른 UI"; // 실제 값으로 교체
+        int time = 10; // 예제 시간, 실제 값으로 교체
 
         // 스크린샷 저장
         try {
@@ -181,11 +184,13 @@ public class AndroidManager {
         }
 
         // 콘솔에 출력
-        System.out.println(logBuffer.toString());
-        System.out.println("로그버퍼 작동&&&&");
+
+
+        String errreason = ErrorHandler.getErrorReason(t, ui, anotherUi, time);
         String logdetail = logBuffer.toString();
 //        String logdetaila = logdetail.replace("\n", "\\n").replace("\"", "\\\"");
-        Jiradefectissuecreate.defectissuecreate(logdetail ,JIRA_URL, USERNAME,JIRA_API_TOKEN);
+
+        Jiradefectissuecreate.defectissuecreate(logdetail,errreason ,JIRA_URL, USERNAME,JIRA_API_TOKEN);
 
 
         // 오류 로그를 파일에 기록
