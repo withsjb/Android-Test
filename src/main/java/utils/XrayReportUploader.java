@@ -1,6 +1,8 @@
 package utils;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -42,7 +44,7 @@ public class XrayReportUploader {
     static String mp4path;
 
     private static ZonedDateTime koreantime = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
-
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static String formatdate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(koreantime);
 
     public static void loadProperties(String propertiesFilePath) throws IOException {
@@ -65,78 +67,81 @@ public class XrayReportUploader {
     }
 
 
-      //  jira 최근 이슈 jql 로 찾기
-        public static String findrecentissue(String projectKey, String jiraApiToken, String username)throws Exception{
+    //  jira 최근 이슈 jql 로 찾기
+    public static String findrecentissue(String projectKey, String jiraApiToken, String username)throws Exception{
 
-            String jql = "project = " + projectKey  + " AND issuetype = 'Test Execution' ORDER BY created DESC";
-            String searchUrl = JIRA_URL + "/rest/api/3/search?jql=" + URLEncoder.encode(jql, StandardCharsets.UTF_8);
-            System.out.println(searchUrl);
+        String jql = "project = " + projectKey  + " AND issuetype = 'Test Execution' ORDER BY created DESC";
+        String searchUrl = JIRA_URL + "/rest/api/3/search?jql=" + URLEncoder.encode(jql, StandardCharsets.UTF_8);
+        System.out.println(searchUrl);
 
-            HttpURLConnection connection = AndroidManager.connect(searchUrl, "GET", username, jiraApiToken );
+        HttpURLConnection connection = AndroidManager.connect(searchUrl, "GET", username, jiraApiToken );
 
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                try (InputStream is = connection.getInputStream()) {
-                    String response = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                    JSONObject jsonResponse = new JSONObject(response);
-                    JSONArray issues = jsonResponse.getJSONArray("issues");
+        int responseCode = connection.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            try (InputStream is = connection.getInputStream()) {
+                String response = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                JSONObject jsonResponse = new JSONObject(response);
+                JSONArray issues = jsonResponse.getJSONArray("issues");
 
-                    if (issues.length() > 0) {
-                        String issueKey = issues.getJSONObject(0).getString("key");
-                        System.out.println("최근 생성된 Issue Key: " + issueKey);
-                        return issueKey;
-                    } else {
-                        System.out.println("해당 프로젝트에 테스트 실행 이슈가 없습니다.");
-                        return null;
-                    }
-                }
-            } else {
-                System.out.println("Jira 이슈 검색 실패. 응답 코드: " + responseCode);
-                return null;
-            }
-        }
-
-
-        //update isuue
-        public static void update_summary_description(String issueKey, String summary ,String jiraApiToken, String username )throws Exception {
-            String url = JIRA_URL + "/rest/api/3/issue/" + issueKey;
-            System.out.println(url);
-            HttpURLConnection connection = AndroidManager.connect(url, "PUT", username, jiraApiToken);
-
-            String description = AndroidManager.readJsonFromFile("src/main/resources/jiraissue.json");
-
-
-            String jsonPayload = "{"
-                    + "\"fields\": {"
-                    + "\"summary\": \"" + summary + "\","
-                    + "\"description\": " + description
-                    + "}"
-                    + "}";
-
-
-
-
-            // 요청 본문을 출력 스트림에 작성
-            connection.setDoOutput(true);
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
-            }
-
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
-                System.out.println("이슈 이름 바꾸기 성공.");
-            } else {
-                System.out.println("이슈 이름 바꾸기 실패. Response code: " + responseCode);
-                try (InputStream errorStream = connection.getErrorStream()) {
-                    String errorResponse = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
-                    System.out.println("Error Response: " + errorResponse);
+                if (issues.length() > 0) {
+                    String issueKey = issues.getJSONObject(0).getString("key");
+                    System.out.println("최근 생성된 Issue Key: " + issueKey);
+                    return issueKey;
+                } else {
+                    System.out.println("해당 프로젝트에 테스트 실행 이슈가 없습니다.");
+                    return null;
                 }
             }
+        } else {
+            System.out.println("Jira 이슈 검색 실패. 응답 코드: " + responseCode);
+            return null;
+        }
+    }
 
+
+    //update isuue
+    public static void update_summary_description(String issueKey, String summary, String jiraApiToken, String username) throws Exception {
+        // Jira URL 설정
+        String url = JIRA_URL + "/rest/api/3/issue/" + issueKey;
+        System.out.println(url);
+        HttpURLConnection connection = AndroidManager.connect(url, "PUT", username, jiraApiToken);
+        String jsonfile = "target/cucumber.json";
+        File jsonFile = new File(jsonfile);
+        JsonNode jsonResults = objectMapper.readTree(jsonFile);
+        // 시나리오 테이블 생성
+        String description = AndroidManager.generateScenarioReport(jsonResults);
+        System.out.println("des:" + description);
+        // Jira Payload 생성 (summary와 description 포함)
+        String jsonPayload = "{"
+                + "\"fields\": {"
+                + "\"summary\": \"" + summary + "\","
+                + "\"description\": " + description  // 생성된 테이블을 description에 넣기
+                + "}"
+                + "}";
+
+
+        System.out.println("jsonPayload:" + jsonPayload);
+        // 요청 본문을 출력 스트림에 작성
+        connection.setDoOutput(true);
+        try (OutputStream os = connection.getOutputStream()) {
+            byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
         }
 
-        //테스트 결과 테스트 플랜하고 링크하기
+        // 응답 코드 확인
+        int responseCode = connection.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+            System.out.println("이슈 이름 바꾸기 성공.");
+        } else {
+            System.out.println("이슈 이름 바꾸기 실패. Response code: " + responseCode);
+            try (InputStream errorStream = connection.getErrorStream()) {
+                String errorResponse = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
+                System.out.println("Error Response: " + errorResponse);
+            }
+        }
+    }
+
+    //테스트 결과 테스트 플랜하고 링크하기
     public static void LinkTeatPlen(String executKey,String testplenKey, String jiraApiToken, String username )throws Exception {
         String TestPlenurl = JIRA_URL + "/rest/api/3/issueLink";
 
@@ -147,7 +152,7 @@ public class XrayReportUploader {
         getissue(testplenKey, jiraApiToken, username);
 
 
-        
+
         HttpURLConnection connection = AndroidManager.connect(TestPlenurl, "POST", username, jiraApiToken);
 
         String jsonPayload = "{"
@@ -212,11 +217,11 @@ public class XrayReportUploader {
         }
     }
 
-            // Cucumber JSON 결과를 Xray에 업로드하는 메서드
-       public static void uploadTestReport(String cucumberJsonFilePath) throws Exception {
+    // Cucumber JSON 결과를 Xray에 업로드하는 메서드
+    public static void uploadTestReport(String cucumberJsonFilePath) throws Exception {
         // Cucumber JSON 파일을 읽기
         File cucumberJsonFile = new File(cucumberJsonFilePath);
-           System.out.println("cucumber 위치: "+ cucumberJsonFilePath);
+        System.out.println("cucumber 위치: "+ cucumberJsonFilePath);
         byte[] cucumberJsonBytes = Files.readAllBytes(cucumberJsonFile.toPath());
 
 // HTTP 연결 설정
@@ -267,16 +272,16 @@ public class XrayReportUploader {
             String cucumberJsonFilePath = "target/cucumber.json";  // Cucumber JSON 파일 경로
 
             uploadTestReport(cucumberJsonFilePath);
-           String issuekey =  findrecentissue(projectKey, JIRA_TOKEN, USERNAME);
-           String new_summary = "11st test " + "[" + formatdate + "]";
+            String issuekey =  findrecentissue(projectKey, JIRA_TOKEN, USERNAME);
+            String new_summary = "11st test " + "[" + formatdate + "]";
 
 
 
             System.out.println("새로운 제목 : " + new_summary);
-           update_summary_description(issuekey,new_summary,JIRA_TOKEN,USERNAME);
+            update_summary_description(issuekey,new_summary,JIRA_TOKEN,USERNAME);
             captureandlog(issuekey,USERNAME,JIRA_TOKEN,logpath,errorcaturepath, mp4path);
-           LinkTeatPlen(issuekey, oneonetestPlen, JIRA_TOKEN, USERNAME );
-           System.out.println(cucumberJsonFilePath);
+            LinkTeatPlen(issuekey, oneonetestPlen, JIRA_TOKEN, USERNAME );
+            System.out.println(cucumberJsonFilePath);
             System.out.println("Xray report 테스트 정상 실행");
         } catch (Exception e) {
             e.printStackTrace();
@@ -303,9 +308,9 @@ public class XrayReportUploader {
 
     // Jira에 파일 첨부 메서드
     public static void captureandlog(String issueKey, String username, String jiraApiToken, String logDirPath, String pngDirPath, String mp4DirPath) throws Exception {
-            String url = JIRA_URL + "/rest/api/3/issue/" + issueKey + "/attachments";
-            System.out.println("첨부파일 url" + url);
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        String url = JIRA_URL + "/rest/api/3/issue/" + issueKey + "/attachments";
+        System.out.println("첨부파일 url" + url);
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Authorization", "Basic " + java.util.Base64.getEncoder().encodeToString((username + ":" + jiraApiToken).getBytes()));
         connection.setRequestProperty("X-Atlassian-Token", "no-check");  //xsrf 우화

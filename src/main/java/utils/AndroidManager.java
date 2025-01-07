@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.options.UiAutomator2Options;
 import io.cucumber.java.Scenario;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.monte.screenrecorder.ScreenRecorder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
@@ -34,6 +36,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
 import java.util.List;
@@ -350,7 +353,151 @@ public class AndroidManager {
         return new String(Files.readAllBytes(Paths.get(filePath)));
     }
 
+
+
+    //json에서 년월일 추출 및 표 제작
+    //실패한 시나리오만 추출
+
+    public static String generateFailureReport(JsonNode jsonResults) {
+        StringBuilder table = new StringBuilder();
+
+        // 표 제목 추가
+        table.append("| 테스트 진행 년도 | 월 | 일 | 시간 | 테스트 시나리오 | 테스트 결과 |\n");
+        table.append("| --- | --- | --- | --- | --- | --- |\n");
+
+        // 현재 날짜로 년, 월, 일, 시간 추출
+        String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        String currentYear = currentDate.split("-")[0];
+        String currentMonth = currentDate.split("-")[1];
+        String currentDay = currentDate.split("-")[2];
+
+        // 실패한 시나리오 추출
+        Iterator<JsonNode> scenarios = jsonResults.elements();
+        while (scenarios.hasNext()) {
+            JsonNode scenario = scenarios.next();
+
+            Iterator<JsonNode> elements = scenario.get("elements").elements();
+            while (elements.hasNext()) {
+                JsonNode element = elements.next();
+
+                String scenarioName = element.get("name").asText();
+                String status = element.get("steps").get(0).get("result").get("status").asText(); // 첫 번째 step의 status 사용
+
+                if ("failed".equals(status)) {
+                    String timestamp = element.get("start_timestamp").asText();
+                    String time = timestamp.split("T")[1].split("\\.")[0];  // 시간 부분만 추출
+
+                    // 표에 실패한 시나리오 추가
+                    table.append(String.format("| %s | %s | %s | %s | \"%s\" | %s |\n",
+                            currentYear, currentMonth, currentDay, time,
+                            scenarioName.replace("\"", "\\\""),  // 따옴표 이스케이프
+                            status));
+                }
+            }
+        }
+
+        return table.toString();
+    }
+
+    // 성공 리포트 생성
+    public static String generateScenarioReport(JsonNode jsonResults) {
+        // 결과를 담을 JSON 객체
+        JSONObject result = new JSONObject();
+        JSONObject docContent = new JSONObject();
+        JSONArray content = new JSONArray();
+
+        JSONArray tableContent = new JSONArray();
+        JSONArray headerRow = new JSONArray();
+        headerRow.put(createTableCell("Test Date"));
+        headerRow.put(createTableCell("Scenario Name"));
+        headerRow.put(createTableCell("Test Result"));
+        tableContent.put(createTableRow(headerRow));
+
+        // 날짜 및 시나리오 정보 추출
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+        for (JsonNode feature : jsonResults) {
+            for (JsonNode scenario : feature.get("elements")) {
+                String startTime = scenario.get("start_timestamp").asText();
+                String scenarioName = scenario.get("name").asText();
+                String testResult = "Passed";
+
+                for (JsonNode step : scenario.get("steps")) {
+                    String stepStatus = step.get("result").get("status").asText();
+                    if ("failed".equalsIgnoreCase(stepStatus)) {
+                        testResult = "Failed";
+                        break;
+                    }
+                }
+
+                // 수정된 날짜 포맷 적용
+                try {
+                    Date date = dateFormat.parse(startTime); // T 구분자와 Z를 처리하는 포맷
+                    String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+
+                    // 테이블 행 추가
+                    JSONArray row = new JSONArray();
+                    row.put(createTableCell(formattedDate));
+                    row.put(createTableCell(scenarioName));
+                    row.put(createTableCell(testResult));
+                    tableContent.put(createTableRow(row));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.err.println("Invalid date format: " + startTime);
+                }
+            }
+        }
+
+        // 테이블 생성
+        JSONObject table = new JSONObject();
+        table.put("type", "table");
+        table.put("attrs", new JSONObject()
+                .put("isNumberColumnEnabled", false)
+                .put("layout", "center")
+                .put("width", 900)
+                .put("displayMode", "default"));
+        table.put("content", tableContent);
+
+        // 문서 내용
+        content.put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()
+                .put(new JSONObject().put("type", "text").put("text", "This is a description above the table."))));
+
+        content.put(table);
+
+        content.put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()
+                .put(new JSONObject().put("type", "text").put("text", "This is a description after the table."))));
+
+        // 최종 문서 작성
+        docContent.put("type", "doc");
+        docContent.put("version", 1);
+        docContent.put("content", content);
+
+        // 최종 결과 반환 (문서 형식으로)
+        return docContent.toString();
+    }
+
+    // 테이블 셀 생성
+    private static JSONObject createTableCell(String text) {
+        JSONObject cell = new JSONObject();
+        cell.put("type", "tableCell");
+        cell.put("content", new JSONArray()
+                .put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()
+                        .put(new JSONObject().put("type", "text").put("text", text)))));
+        return cell;
+    }
+
+    // 테이블 행 생성
+    private static JSONObject createTableRow(JSONArray rowContent) {
+        JSONObject row = new JSONObject();
+        row.put("type", "tableRow");
+        row.put("content", rowContent);
+        return row;
+    }
+
 }
+
+
+
 
 
 

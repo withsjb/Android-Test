@@ -1,90 +1,112 @@
 {
-  "version": 1,
-  "type": "doc",
-  "content": [
-    {
-      "type": "heading",
-      "attrs": {
-        "level": 1
-      },
-      "content": [
-        {
-          "type": "text",
-          "text": "[테스트 실패 원인]"
-        }
-      ]
+  "fields": {
+    "project": {
+      "key": "TW"
     },
-    {
-      "type": "paragraph",
-      "content": [
-        {
-          "type": "text",
-          "text": "**FailissueDetail**"
-        }
-      ]
+    "summary": "Test Issue with Table",
+    "issuetype": {
+      "name": "Test Exception"
     },
-    {
-      "type": "heading",
-      "attrs": {
-        "level": 1
-      },
+    "description": {
+      "type": "doc",
+      "version": 1,
       "content": [
         {
-          "type": "text",
-          "text": "[실패 로그]"
-        }
-      ]
-    },
-    {
-      "type": "paragraph",
-      "content": [
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "This is a description above the table."
+            }
+          ]
+        },
         {
-          "type": "text",
-          "text": "{code}{{fail log}}{code}"
-        }
-      ]
-    },
-    {
-      "type": "heading",
-      "attrs": {
-        "level": 1
-      },
-      "content": [
+          "type": "table",
+          "attrs": {
+            "isNumberColumnEnabled": false,
+            "layout": "center",
+            "width": 900,
+            "displayMode": "default"
+          },
+          "content": [
+            {
+              "type": "tableRow",
+              "content": [
+                {
+                  "type": "tableCell",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Row one, cell one"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableCell",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "원?, 투? two"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "tableRow",
+              "content": [
+                {
+                  "type": "tableCell",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Row two, cell one"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "tableCell",
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Row two, cell two"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
         {
-          "type": "text",
-          "text": "[시나리오 스탭별 결과]"
-        }
-      ]
-    },
-    {
-      "type": "paragraph",
-      "content": [
-        {
-          "type": "text",
-          "text": "**stepresult**"
-        }
-      ]
-    },
-    {
-      "type": "heading",
-      "attrs": {
-        "level": 1
-      },
-      "content": [
-        {
-          "type": "text",
-          "text": "[테이블]"
-        }
-      ]
-    },
-    {
-      "type": "paragraph",
-      "content": [
-        {
-          "type": "text",
-          "text": "|| 열 1 || 열 2 || 열 3 ||\n|-------|-------|-------|\n| 데이터1 | 데이터2 | 데이터3 |\n| 데이터4 | 데이터5 | 데이터6 |"
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "This is a description after the table."
+            }
+          ]
         }
       ]
     }
-  ]
+  }
 }
