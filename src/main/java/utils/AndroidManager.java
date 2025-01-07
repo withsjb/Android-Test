@@ -77,7 +77,7 @@ public class AndroidManager {
 
                  driver = new AndroidDriver(
                         // The default URL in Appium 1 is http://127.0.0.1:4723/wd/hub
-                        new URL("http://127.0.0.1:4723"), options
+                        new URL("http://127.0.0.1:4724"), options
                 );
                  System.out.println("드라이버 연결");
             }catch(MalformedURLException e){
@@ -408,9 +408,9 @@ public class AndroidManager {
 
         JSONArray tableContent = new JSONArray();
         JSONArray headerRow = new JSONArray();
-        headerRow.put(createTableCell("Test Date"));
-        headerRow.put(createTableCell("Scenario Name"));
-        headerRow.put(createTableCell("Test Result"));
+        headerRow.put(createTableCell("테스트 기간", null));
+        headerRow.put(createTableCell("시나리오" , null));
+        headerRow.put(createTableCell("테스트 결과" , null));
         tableContent.put(createTableRow(headerRow));
 
         // 날짜 및 시나리오 정보 추출
@@ -437,9 +437,9 @@ public class AndroidManager {
 
                     // 테이블 행 추가
                     JSONArray row = new JSONArray();
-                    row.put(createTableCell(formattedDate));
-                    row.put(createTableCell(scenarioName));
-                    row.put(createTableCell(testResult));
+                    row.put(createTableCell(formattedDate, null));
+                    row.put(createTableCell(scenarioName, null));
+                    row.put(createTableCell(testResult, "Passed".equals(testResult) ? "#006644" : "#d32f2f")); // 성공/실패 색상 추가
                     tableContent.put(createTableRow(row));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -477,12 +477,16 @@ public class AndroidManager {
     }
 
     // 테이블 셀 생성
-    private static JSONObject createTableCell(String text) {
+    private static JSONObject createTableCell(String text, String color) {
         JSONObject cell = new JSONObject();
         cell.put("type", "tableCell");
         cell.put("content", new JSONArray()
                 .put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()
-                        .put(new JSONObject().put("type", "text").put("text", text)))));
+                        .put(new JSONObject().put("type", "text").put("text", text)
+                                .put("marks", color != null ? new JSONArray()
+                                        .put(new JSONObject().put("type", "textColor")
+                                                .put("attrs", new JSONObject().put("color", color)))
+                                        : null)))));
         return cell;
     }
 
