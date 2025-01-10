@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.options.UiAutomator2Options;
 import io.cucumber.java.Scenario;
+import org.jfree.chart.JFreeChart;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.monte.screenrecorder.ScreenRecorder;
@@ -75,11 +76,11 @@ public class AndroidManager {
                         .setAppActivity("com.elevenst.intro.Intro");
 
 
-                 driver = new AndroidDriver(
+                driver = new AndroidDriver(
                         // The default URL in Appium 1 is http://127.0.0.1:4723/wd/hub
                         new URL("http://127.0.0.1:4724"), options
                 );
-                 System.out.println("드라이버 연결");
+                System.out.println("드라이버 연결");
             }catch(MalformedURLException e){
                 throw new RuntimeException(e);
             }
@@ -128,7 +129,7 @@ public class AndroidManager {
         }catch (MalformedURLException e){
             throw new RuntimeException("Driver initialization failed.", e);
         }
-        }
+    }
     //  xpath
     public static WebElement getElementByXpath(String xPath) throws MalformedURLException{
         return getWait().until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xPath)));
@@ -400,7 +401,10 @@ public class AndroidManager {
     }
 
     // 성공 리포트 생성
-    public static String generateScenarioReport(JsonNode jsonResults) {
+    public static String generateScenarioReport(JsonNode jsonResults, String issuekey) {
+        int countPassed = 0;
+        int countFailed = 0;
+
         // 결과를 담을 JSON 객체
         JSONObject result = new JSONObject();
         JSONObject docContent = new JSONObject();
@@ -420,14 +424,20 @@ public class AndroidManager {
             for (JsonNode scenario : feature.get("elements")) {
                 String startTime = scenario.get("start_timestamp").asText();
                 String scenarioName = scenario.get("name").asText();
-                String testResult = "Passed";
+                String testResult = "✅ Passed";
 
                 for (JsonNode step : scenario.get("steps")) {
                     String stepStatus = step.get("result").get("status").asText();
                     if ("failed".equalsIgnoreCase(stepStatus)) {
-                        testResult = "Failed";
+                        testResult = "⛔ Failed";
+                        //failed 1증가
+                        countFailed++;
                         break;
                     }
+                }
+                    //passed 1증가
+                if ("✅ Passed".equals(testResult)) {
+                    countPassed++;
                 }
 
                 // 수정된 날짜 포맷 적용
@@ -471,7 +481,14 @@ public class AndroidManager {
         docContent.put("type", "doc");
         docContent.put("version", 1);
         docContent.put("content", content);
-
+        //차트 그리기
+        try {
+            JFreeChart pieChart = cucumberchart.createPiechart(countPassed, countFailed);
+            String savePath = "src/main/save/chart/results" + issuekey +"_chart.png";
+            cucumberchart.savePieChartAsImage(pieChart, savePath);
+        }catch (Exception e){
+            e.getMessage();
+        }
         // 최종 결과 반환 (문서 형식으로)
         return docContent.toString();
     }
@@ -499,10 +516,3 @@ public class AndroidManager {
     }
 
 }
-
-
-
-
-
-
-

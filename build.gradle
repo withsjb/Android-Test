@@ -1,4 +1,4 @@
-import groovy.json.JsonSlurper
+
 
 
 plugins {
@@ -33,6 +33,7 @@ dependencies {
     implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
 //    implementation 'org.codehaus.groovy:groovy:4.0.22'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.18.2'
+    implementation group: 'jfree', name: 'jfreechart', version: '1.0.13'
 }
 
 

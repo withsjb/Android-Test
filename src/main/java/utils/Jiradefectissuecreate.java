@@ -42,23 +42,20 @@ public class Jiradefectissuecreate {
         String log = logdetail.replace("\n", "\\n").replace("\"", "\\\"");
         String errre = errreason.replace("\n", "\\n").replace("\"", "\\\"");
         //여기부터 json 결과 추출
-        String jsonfile = "target/cucumber.json";
-        File jsonFile = new File(jsonfile);
-        JsonNode jsonResults = objectMapper.readTree(jsonFile);
+//        String jsonfile = "target/cucumber.json";
+//        File jsonFile = new File(jsonfile);
+//        JsonNode jsonResults = objectMapper.readTree(jsonFile);
+//
+//        String failureReport = AndroidManager.generateScenarioReport(jsonResults);
+//        String failureReportEscaped = failureReport.replace("\n", "\\n").replace("\"", "\\\"");
 
-        String failureReport = AndroidManager.generateScenarioReport(jsonResults);
-        String failureReportEscaped = failureReport.replace("\n", "\\n").replace("\"", "\\\"");
 
 
-        System.out.println("에러 결과 추출: " + failureReport);
-
-        System.out.println("전송한 테이블: " + failureReportEscaped);
 
         //결과 추출 끝
         System.out.println("에러 이유(defect 생성 44): " + errreason);
         String description = String.format(
-                "\\n{color:#FF0000}*[테스트 실패 날짜]*{color}\\n" +
-                        failureReportEscaped +
+
                 "\\n{color:#FF0000}*[테스트 실패 원인]*{color}\\n" +
                 errre +
                 "\\n{color:#FF0000}*[테스트 실패 로그]*{color}\\n" +
@@ -105,6 +102,10 @@ public class Jiradefectissuecreate {
                 }
                 // 예시로 JSON 응답에서 "key" 값을 추출
                 String issueKey = extractIssueKeyFromResponse(response.toString());
+                System.out.println("이슈 키 잘 생성되나 가자미 테스트:" + issueKey);
+
+                XrayReportUploader.setLinkissuekey(issueKey);
+
                 return issueKey;
             }
         } else {

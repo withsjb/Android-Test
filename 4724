@@ -1,0 +1,6 @@
+2025-01-09 00:01:02:091 [Appium] Welcome to Appium v2.12.1
+2025-01-09 00:01:02:092 [Appium] The autodetected Appium home path: /Users/sonjinbin/.appium
+2025-01-09 00:01:02:092 [Appium] Attempting to load driver uiautomator2...
+2025-01-09 00:01:02:093 [Appium] Requiring driver at /Users/sonjinbin/.appium/node_modules/appium-uiautomator2-driver/build/index.js
+2025-01-09 00:01:02:360 [Appium] AndroidUiautomator2Driver has been successfully loaded in 0.267s
+2025-01-09 00:01:02:367 [HTTP] Could not start REST http interface listener. The requested port may already be in use. Please make sure there is no other instance of this server running already.

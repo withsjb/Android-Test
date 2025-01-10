@@ -47,6 +47,18 @@ public class XrayReportUploader {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static String formatdate = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(koreantime);
 
+
+    public static String Linkissuekey;
+
+
+    public static void setLinkissuekey(String key){
+        Linkissuekey = key;
+    }
+
+    public static String getLinkissuekey(){
+        return Linkissuekey;
+    }
+
     public static void loadProperties(String propertiesFilePath) throws IOException {
         Properties properties = new Properties();
 
@@ -100,6 +112,7 @@ public class XrayReportUploader {
 
 
     //update isuue
+
     public static void update_summary_description(String issueKey, String summary, String jiraApiToken, String username) throws Exception {
         // Jira URL 설정
         String url = JIRA_URL + "/rest/api/3/issue/" + issueKey;
@@ -109,7 +122,7 @@ public class XrayReportUploader {
         File jsonFile = new File(jsonfile);
         JsonNode jsonResults = objectMapper.readTree(jsonFile);
         // 시나리오 테이블 생성
-        String description = AndroidManager.generateScenarioReport(jsonResults);
+        String description = AndroidManager.generateScenarioReport(jsonResults, issueKey);
         System.out.println("des:" + description);
         // Jira Payload 생성 (summary와 description 포함)
         String jsonPayload = "{"
