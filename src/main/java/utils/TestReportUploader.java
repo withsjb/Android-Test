@@ -3,6 +3,7 @@ package utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jfree.chart.JFreeChart;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -12,9 +13,11 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
@@ -179,14 +182,20 @@ public class TestReportUploader {
     public static void update_summary_description(String issueKey, String summary, String jiraApiToken, String username) throws Exception {
         // Jira URL 설정
         String url = JIRA_URL + "/rest/api/3/issue/" + issueKey;
-        System.out.println(url);
         HttpURLConnection connection = AndroidManager.connect(url, "PUT", username, jiraApiToken);
-        String jsonfile = "target/cucumber.json";
-        File jsonFile = new File(jsonfile);
+
+        // Jira에서 기존 issue 정보를 가져와서 description 읽기
+        String existingDescription = getExistingDescription(issueKey, jiraApiToken, username);
+        System.out.println("Existing Description: " + existingDescription);
+
+        // 새로운 cucumber 파일 읽기
+        String jsonFilePath = "target/target_2025-01-08/cucumber_2025-01-08.json";
+        File jsonFile = new File(jsonFilePath);
         JsonNode jsonResults = objectMapper.readTree(jsonFile);
-        // 시나리오 테이블 생성
-        String description = AndroidManager.generateScenarioReport(jsonResults, issueKey);
-        System.out.println("des:" + description);
+
+        // 기존 description이 JSON 객체일 수 있으므로 이를 String으로 변환 후 사용
+        String description = generateScenarioReport(jsonResults, issueKey, existingDescription);
+
         // Jira Payload 생성 (summary와 description 포함)
         String jsonPayload = "{"
                 + "\"fields\": {"
@@ -195,8 +204,8 @@ public class TestReportUploader {
                 + "}"
                 + "}";
 
-
         System.out.println("jsonPayload:" + jsonPayload);
+
         // 요청 본문을 출력 스트림에 작성
         connection.setDoOutput(true);
         try (OutputStream os = connection.getOutputStream()) {
@@ -216,6 +225,50 @@ public class TestReportUploader {
             }
         }
     }
+
+
+
+
+    // Jira에서 기존 Description을 가져오는 함수
+    // Jira에서 기존 Description을 가져오는 함수
+    private static String getExistingDescription(String issueKey, String jiraApiToken, String username) throws Exception {
+        String url = JIRA_URL + "/rest/api/3/issue/" + issueKey;
+        HttpURLConnection connection = AndroidManager.connect(url, "GET", username, jiraApiToken);
+
+        // 요청을 보낸 후 응답을 처리
+        int responseCode = connection.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            try (InputStream inputStream = connection.getInputStream()) {
+                String response = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                // 기존 description을 추출
+                JSONObject jsonResponse = new JSONObject(response);
+                JSONObject fields = jsonResponse.getJSONObject("fields");
+
+                // description이 JSON 형식일 경우, content가 JSONArray로 포함됨
+                if (fields.has("description")) {
+                    Object descriptionObj = fields.get("description");
+                    System.out.println("가져온 설명: " + descriptionObj);
+
+                    if (descriptionObj instanceof JSONObject) {
+                        // description이 JSONObject일 경우, content 배열을 반환
+                        JSONObject descriptionJson = (JSONObject) descriptionObj;
+                        System.out.println("가져온 content 배열: " + descriptionJson.getJSONArray("content").toString());
+                        return descriptionJson.getJSONArray("content").toString();  // JSONArray로 반환
+                    } else if (descriptionObj instanceof String) {
+                        // description이 단순 문자열일 경우
+                        return (String) descriptionObj;
+                    }
+                }
+                return "";  // description이 없을 경우 빈 문자열 반환
+            }
+        } else {
+            throw new Exception("Error fetching issue details, Response code: " + responseCode);
+        }
+    }
+
+
+
+
 
     //테스트 결과 테스트 플랜하고 링크하기
     public static void LinkTeatPlen(String executKey,String testplenKey, String jiraApiToken, String username )throws Exception {
@@ -464,6 +517,236 @@ public class TestReportUploader {
 
         return allFiles;
     }
+
+    //삭제 예정
+    public static String generateScenarioReport(JsonNode jsonResults, String issueKey, String existingDescription) {
+        int countPassed = 0;
+        int countFailed = 0;
+
+        // 결과를 담을 JSON 객체
+        JSONObject result = new JSONObject();
+        JSONObject docContent = new JSONObject();
+        JSONArray content = new JSONArray();
+
+        JSONArray tableContent = new JSONArray();
+        JSONArray resultTableContent = new JSONArray();  // 합계만 포함할 새로운 테이블
+
+        // 날짜 및 시나리오 정보 추출
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+        // 테이블 헤더는 한 번만 추가
+        boolean isHeaderAdded = false;
+
+        // 합계는 한번만 통합
+        boolean isTotalAdded = false;
+
+        // 기존 데이터를 테이블에 추가
+        if (!existingDescription.isEmpty()) {
+            try {
+                // 기존 description을 String으로 처리하고, JSON 변환 후 table에 추가
+                JSONArray existingJsonArray = new JSONArray(existingDescription);
+                System.out.println("existingJsonArray : " + existingJsonArray);
+
+                // 기존 테이블이 있을 경우 그 내용을 추가
+                if (existingJsonArray.length() > 1) {
+                    JSONArray existingTableContent = existingJsonArray.getJSONObject(1).getJSONArray("content");
+                    System.out.println("existingTableContent(기존 테이블 있을 경우 내용 추가) : " + existingTableContent);
+                    tableContent.putAll(existingTableContent);
+                    isHeaderAdded = true;
+                    isTotalAdded = true;
+
+                    if (!existingTableContent.isEmpty()) {
+                        JSONObject callcontent = existingJsonArray.getJSONObject(1);  // 마지막 항목
+                        System.out.println("callcontent : " + callcontent);
+                        JSONArray contentcell = callcontent.getJSONArray("content");
+                        JSONObject cellvalue = contentcell.getJSONObject(1);
+                        System.out.println("cellvalue : " + cellvalue);
+                        JSONArray failedarray = cellvalue.getJSONArray("content");
+                        JSONObject failedvalue = failedarray.getJSONObject(2);
+                        System.out.println("failedvalue : " + failedvalue);
+
+                        // "content" 배열 내 첫 번째 객체에서 "text" 값 추출
+                        JSONArray paragraphArray = failedvalue.optJSONArray("content");
+                        if (paragraphArray != null && paragraphArray.length() > 0) {
+                            JSONObject paragraphObject = paragraphArray.getJSONObject(0);
+                            JSONArray textArray = paragraphObject.optJSONArray("content");
+
+                            if (textArray != null && textArray.length() > 0) {
+                                JSONObject textObject = textArray.getJSONObject(0);
+                                String value = textObject.optString("text", null);
+                                System.out.println("Extracted text: " + value);
+
+                                if (value != null) {
+                                    int intFailValue = Integer.parseInt(value);
+                                    countFailed += intFailValue;
+                                } else {
+                                    System.err.println("No text value found in the first content object.");
+                                }
+                            } else {
+                                System.err.println("No content found in the paragraph.");
+                            }
+                        } else {
+                            System.err.println("No content array found in failedvalue.");
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error reading existing description: " + e.getMessage());
+            }
+        }
+
+        // 새로운 테스트 결과 처리
+        for (JsonNode feature : jsonResults) {
+            for (JsonNode scenario : feature.get("elements")) {
+                String startTime = scenario.get("start_timestamp").asText();
+                String scenarioName = scenario.get("name").asText();
+                String testResult = "✅ Passed";
+
+                for (JsonNode step : scenario.get("steps")) {
+                    String stepStatus = step.get("result").get("status").asText();
+                    if ("failed".equalsIgnoreCase(stepStatus)) {
+                        testResult = "⛔ Failed";
+                        countFailed++;
+                        break;
+                    }
+                }
+
+                if ("✅ Passed".equals(testResult)) {
+                    countPassed++;
+                }
+
+                // 테이블 헤더는 첫 번째 결과 전까지만 추가 (헤더가 반복되지 않도록)
+                if (!isHeaderAdded) {
+                    JSONArray headerRow = new JSONArray();
+                    headerRow.put(createTableCell("테스트 기간", null));
+                    headerRow.put(createTableCell("시나리오", null));
+                    headerRow.put(createTableCell("테스트 결과", null));
+                    tableContent.put(createTableRow(headerRow));
+                    isHeaderAdded = true; // 헤더 추가 후 추가되지 않도록 설정
+                }
+
+                // 수정된 날짜 포맷 적용
+                try {
+                    Date date = dateFormat.parse(startTime); // T 구분자와 Z를 처리하는 포맷
+                    String formattedDate = new SimpleDateFormat("yyyy-MM-dd").format(date);
+
+                    // 테이블 행 추가
+                    JSONArray row = new JSONArray();
+                    row.put(createTableCell(formattedDate, null));
+                    row.put(createTableCell(scenarioName, null));
+                    row.put(createTableCell(testResult, "Passed".equals(testResult) ? "#006644" : "#d32f2f"));
+                    tableContent.put(createTableRow(row));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.err.println("Invalid date format: " + startTime);
+                }
+            }
+        }
+
+        // 합계 테이블을 별도로 추가
+
+            // 합계 테이블 생성
+            JSONArray footerRow = new JSONArray();
+            footerRow.put(createTableCell("합계", null));
+            footerRow.put(createTableCell("Pass", null));
+            footerRow.put(createTableCell(String.valueOf(countPassed), "#006644"));
+            resultTableContent.put(createTableRow(footerRow));
+
+            footerRow = new JSONArray();
+            footerRow.put(createTableCell("합계", null));
+            footerRow.put(createTableCell("Failed", null));
+            footerRow.put(createTableCell(String.valueOf(countFailed), "#d32f2f"));
+            resultTableContent.put(createTableRow(footerRow));
+
+
+
+
+        // 두 번째 테이블 생성 (합계 전용)
+        JSONObject resultTable = new JSONObject();
+        resultTable.put("type", "table");
+        resultTable.put("attrs", new JSONObject()
+                .put("isNumberColumnEnabled", false)
+                .put("layout", "center")
+                .put("width", 900)
+                .put("displayMode", "default"));
+        resultTable.put("content", resultTableContent);
+
+        // 테이블 생성
+        JSONObject table = new JSONObject();
+        table.put("type", "table");
+        table.put("attrs", new JSONObject()
+                .put("isNumberColumnEnabled", false)
+                .put("layout", "center")
+                .put("width", 900)
+                .put("displayMode", "default"));
+        table.put("content", tableContent);
+
+        // 문서 내용
+        content.put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()
+                .put(new JSONObject().put("type", "text").put("text", "This is a description above the table."))));
+
+        if (!isTotalAdded) {
+            content.put(resultTable);  // 합계 테이블 추가
+            isTotalAdded = true;
+        }
+        content.put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()));
+            content.put(table);  // 기존 테스트 결과 테이블 추가
+
+
+        content.put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()));
+//                .put(new JSONObject().put("type", "text").put("text", "This is a description after the table."))));
+
+        // 최종 문서 작성
+        docContent.put("type", "doc");
+        docContent.put("version", 1);
+        docContent.put("content", content);
+
+        // 차트 그리기
+        try {
+            JFreeChart pieChart = cucumberchart.createPiechart(countPassed, countFailed);
+            String savePath = "src/main/save/chart/results" + issueKey + "_chart.png";
+            cucumberchart.savePieChartAsImage(pieChart, savePath);
+        } catch (Exception e) {
+            e.getMessage();
+        }
+
+        // 최종 결과 반환 (문서 형식으로)
+        return docContent.toString();
+    }
+
+
+
+
+
+
+
+
+
+    // 테이블 셀 생성
+    private static JSONObject createTableCell(String text, String color) {
+        JSONObject cell = new JSONObject();
+        cell.put("type", "tableCell");
+        cell.put("content", new JSONArray()
+                .put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()
+                        .put(new JSONObject().put("type", "text").put("text", text)
+                                .put("marks", color != null ? new JSONArray()
+                                        .put(new JSONObject().put("type", "textColor")
+                                                .put("attrs", new JSONObject().put("color", color)))
+                                        : null)))));
+        return cell;
+    }
+
+    // 테이블 행 생성
+    private static JSONObject createTableRow(JSONArray rowContent) {
+        JSONObject row = new JSONObject();
+        row.put("type", "tableRow");
+        row.put("content", rowContent);
+        return row;
+    }
+
+
+
+    //
 
 
     public static void main(String[] args) {

@@ -122,7 +122,8 @@ public class XrayReportUploader {
         File jsonFile = new File(jsonfile);
         JsonNode jsonResults = objectMapper.readTree(jsonFile);
         // 시나리오 테이블 생성
-        String description = AndroidManager.generateScenarioReport(jsonResults, issueKey);
+//        String description = AndroidManager.generateScenarioReport(jsonResults, issueKey);
+        String description = "11";
         System.out.println("des:" + description);
         // Jira Payload 생성 (summary와 description 포함)
         String jsonPayload = "{"
