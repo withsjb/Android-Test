@@ -189,7 +189,7 @@ public class TestReportUploader {
         System.out.println("Existing Description: " + existingDescription);
 
         // 새로운 cucumber 파일 읽기
-        String jsonFilePath = "target/target_2025-01-08/cucumber_2025-01-08.json";
+        String jsonFilePath = "target/target_2025-01-09/cucumber_2025-01-09.json";
         File jsonFile = new File(jsonFilePath);
         JsonNode jsonResults = objectMapper.readTree(jsonFile);
 
@@ -522,14 +522,15 @@ public class TestReportUploader {
     public static String generateScenarioReport(JsonNode jsonResults, String issueKey, String existingDescription) {
         int countPassed = 0;
         int countFailed = 0;
+        int existingPassed = 0;
+        int existingFailed = 0;
 
         // 결과를 담을 JSON 객체
-        JSONObject result = new JSONObject();
         JSONObject docContent = new JSONObject();
         JSONArray content = new JSONArray();
 
         JSONArray tableContent = new JSONArray();
-        JSONArray resultTableContent = new JSONArray();  // 합계만 포함할 새로운 테이블
+        JSONArray resultTableContent = new JSONArray(); // 합계만 포함할 새로운 테이블
 
         // 날짜 및 시나리오 정보 추출
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -537,58 +538,29 @@ public class TestReportUploader {
         // 테이블 헤더는 한 번만 추가
         boolean isHeaderAdded = false;
 
-        // 합계는 한번만 통합
-        boolean isTotalAdded = false;
-
         // 기존 데이터를 테이블에 추가
         if (!existingDescription.isEmpty()) {
             try {
-                // 기존 description을 String으로 처리하고, JSON 변환 후 table에 추가
                 JSONArray existingJsonArray = new JSONArray(existingDescription);
-                System.out.println("existingJsonArray : " + existingJsonArray);
 
                 // 기존 테이블이 있을 경우 그 내용을 추가
                 if (existingJsonArray.length() > 1) {
                     JSONArray existingTableContent = existingJsonArray.getJSONObject(1).getJSONArray("content");
-                    System.out.println("existingTableContent(기존 테이블 있을 경우 내용 추가) : " + existingTableContent);
+                    System.out.println("existingTableContent : " + existingTableContent);
                     tableContent.putAll(existingTableContent);
                     isHeaderAdded = true;
-                    isTotalAdded = true;
 
-                    if (!existingTableContent.isEmpty()) {
-                        JSONObject callcontent = existingJsonArray.getJSONObject(1);  // 마지막 항목
-                        System.out.println("callcontent : " + callcontent);
-                        JSONArray contentcell = callcontent.getJSONArray("content");
-                        JSONObject cellvalue = contentcell.getJSONObject(1);
-                        System.out.println("cellvalue : " + cellvalue);
-                        JSONArray failedarray = cellvalue.getJSONArray("content");
-                        JSONObject failedvalue = failedarray.getJSONObject(2);
-                        System.out.println("failedvalue : " + failedvalue);
+                    // 기존 합계 값 추출
+                    JSONArray FaiiledRow = existingJsonArray.getJSONObject(0).getJSONArray("content").getJSONObject(1).getJSONArray("content");
+                    JSONObject Faiiledobja = FaiiledRow.getJSONObject(2);
+                    JSONArray Faiiledarra = Faiiledobja.getJSONArray("content");
+                    JSONObject Faiiledobjb = Faiiledarra.getJSONObject(0);
+                    JSONArray Faiiledarrb = Faiiledobjb.getJSONArray("content");
+                    JSONObject Failledobjc = Faiiledarrb.getJSONObject(0);
 
-                        // "content" 배열 내 첫 번째 객체에서 "text" 값 추출
-                        JSONArray paragraphArray = failedvalue.optJSONArray("content");
-                        if (paragraphArray != null && paragraphArray.length() > 0) {
-                            JSONObject paragraphObject = paragraphArray.getJSONObject(0);
-                            JSONArray textArray = paragraphObject.optJSONArray("content");
+                    existingFailed = Integer.parseInt(Failledobjc.getString("text"));
+                    System.out.println("existingPassed : " + existingPassed);
 
-                            if (textArray != null && textArray.length() > 0) {
-                                JSONObject textObject = textArray.getJSONObject(0);
-                                String value = textObject.optString("text", null);
-                                System.out.println("Extracted text: " + value);
-
-                                if (value != null) {
-                                    int intFailValue = Integer.parseInt(value);
-                                    countFailed += intFailValue;
-                                } else {
-                                    System.err.println("No text value found in the first content object.");
-                                }
-                            } else {
-                                System.err.println("No content found in the paragraph.");
-                            }
-                        } else {
-                            System.err.println("No content array found in failedvalue.");
-                        }
-                    }
                 }
             } catch (Exception e) {
                 System.err.println("Error reading existing description: " + e.getMessage());
@@ -622,44 +594,42 @@ public class TestReportUploader {
                     headerRow.put(createTableCell("시나리오", null));
                     headerRow.put(createTableCell("테스트 결과", null));
                     tableContent.put(createTableRow(headerRow));
-                    isHeaderAdded = true; // 헤더 추가 후 추가되지 않도록 설정
+                    isHeaderAdded = true;
                 }
 
-                // 수정된 날짜 포맷 적용
+                // 날짜 포맷 처리
                 try {
-                    Date date = dateFormat.parse(startTime); // T 구분자와 Z를 처리하는 포맷
+                    Date date = dateFormat.parse(startTime);
                     String formattedDate = new SimpleDateFormat("yyyy-MM-dd").format(date);
 
-                    // 테이블 행 추가
+                    // 테스트 결과 테이블 행 추가
                     JSONArray row = new JSONArray();
                     row.put(createTableCell(formattedDate, null));
                     row.put(createTableCell(scenarioName, null));
-                    row.put(createTableCell(testResult, "Passed".equals(testResult) ? "#006644" : "#d32f2f"));
+                    row.put(createTableCell(testResult, "✅ Passed".equals(testResult) ? "#006644" : "#d32f2f"));
                     tableContent.put(createTableRow(row));
                 } catch (Exception e) {
-                    e.printStackTrace();
                     System.err.println("Invalid date format: " + startTime);
                 }
             }
         }
 
-        // 합계 테이블을 별도로 추가
+        // 기존 합계와 새로운 합계 값 합산
+        int totalPassed = existingPassed + countPassed;
+        int totalFailed = existingFailed + countFailed;
 
-            // 합계 테이블 생성
-            JSONArray footerRow = new JSONArray();
-            footerRow.put(createTableCell("합계", null));
-            footerRow.put(createTableCell("Pass", null));
-            footerRow.put(createTableCell(String.valueOf(countPassed), "#006644"));
-            resultTableContent.put(createTableRow(footerRow));
+        // 합계 테이블 업데이트
+        JSONArray footerRow = new JSONArray();
+        footerRow.put(createTableCell("합계", null));
+        footerRow.put(createTableCell("Pass", null));
+        footerRow.put(createTableCell(String.valueOf(totalPassed), "#006644"));
+        resultTableContent.put(createTableRow(footerRow));
 
-            footerRow = new JSONArray();
-            footerRow.put(createTableCell("합계", null));
-            footerRow.put(createTableCell("Failed", null));
-            footerRow.put(createTableCell(String.valueOf(countFailed), "#d32f2f"));
-            resultTableContent.put(createTableRow(footerRow));
-
-
-
+        footerRow = new JSONArray();
+        footerRow.put(createTableCell("합계", null));
+        footerRow.put(createTableCell("Failed", null));
+        footerRow.put(createTableCell(String.valueOf(totalFailed), "#d32f2f"));
+        resultTableContent.put(createTableRow(footerRow));
 
         // 두 번째 테이블 생성 (합계 전용)
         JSONObject resultTable = new JSONObject();
@@ -671,7 +641,7 @@ public class TestReportUploader {
                 .put("displayMode", "default"));
         resultTable.put("content", resultTableContent);
 
-        // 테이블 생성
+        // 첫 번째 테이블 생성 (기존 테스트 결과)
         JSONObject table = new JSONObject();
         table.put("type", "table");
         table.put("attrs", new JSONObject()
@@ -681,20 +651,9 @@ public class TestReportUploader {
                 .put("displayMode", "default"));
         table.put("content", tableContent);
 
-        // 문서 내용
-        content.put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()
-                .put(new JSONObject().put("type", "text").put("text", "This is a description above the table."))));
-
-        if (!isTotalAdded) {
-            content.put(resultTable);  // 합계 테이블 추가
-            isTotalAdded = true;
-        }
-        content.put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()));
-            content.put(table);  // 기존 테스트 결과 테이블 추가
-
-
-        content.put(new JSONObject().put("type", "paragraph").put("content", new JSONArray()));
-//                .put(new JSONObject().put("type", "text").put("text", "This is a description after the table."))));
+        // 문서 내용에 합계 테이블과 기존 테이블을 추가
+        content.put(resultTable);  // 합계 테이블 추가
+        content.put(table);        // 기존 테스트 결과 테이블 추가
 
         // 최종 문서 작성
         docContent.put("type", "doc");
@@ -703,16 +662,18 @@ public class TestReportUploader {
 
         // 차트 그리기
         try {
-            JFreeChart pieChart = cucumberchart.createPiechart(countPassed, countFailed);
+            JFreeChart pieChart = cucumberchart.createPiechart(totalPassed, totalFailed);
             String savePath = "src/main/save/chart/results" + issueKey + "_chart.png";
             cucumberchart.savePieChartAsImage(pieChart, savePath);
         } catch (Exception e) {
-            e.getMessage();
+            System.err.println("Error generating chart: " + e.getMessage());
         }
 
         // 최종 결과 반환 (문서 형식으로)
         return docContent.toString();
     }
+
+
 
 
 
